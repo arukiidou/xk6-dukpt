@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["ESNext", "dom"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["k6", "k6/x/dukpt", "k6/x/dukpt/des"],
+    "typeRoots": ["./node_modules/@types", "./types"],
+    "esModuleInterop": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true
+  },
+  "include": ["**/*.ts"]
+}
