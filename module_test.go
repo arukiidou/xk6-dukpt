@@ -26,9 +26,8 @@ func Test_module(t *testing.T) { //nolint:tparallel
 		name  string
 		check string
 	}{
-		{name: "greeting()", check: `mod.greeting("") == "Hello, World!"`},
-		{name: "b32encode()", check: `mod.b32encode("Hello, World!") == "JBSWY3DPFQQFO33SNRSCC==="`},
-		{name: "new Random()", check: `new mod.Random(11).seed == 11`},
+		{name: "derivationOfInitialKeyAsBase64(bdk, ksn)", check: `mod.derivationOfInitialKeyAsBase64("ASNFZ4mrze/+3LqYdlQyEA==", "//+YdlQyEOAAAQ==") === "asKS+qExW02FirOj19WTOg=="`},
+		{name: "deriveCurrentTransactionKeyAsBase64(ik, ksn)", check: `mod.deriveCurrentTransactionKeyAsBase64("asKS+qExW02FirOj19WTOg==", "//+YdlQyEOAAAQ==") === "BCZmtJGEz6No3pYo0Dl7yQ=="`},
 	}
 	for _, tt := range tests { //nolint:paralleltest
 		t.Run(tt.name, func(t *testing.T) {

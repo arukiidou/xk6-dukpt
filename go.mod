@@ -1,6 +1,6 @@
 module github.com/arukiidou/xk6-dukpt
 
-go 1.26.8
+go 1.26.3
 
 require (
 	github.com/moov-io/dukpt v0.0.0-20260902190304-0215fcb7ec54
