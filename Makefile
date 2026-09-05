@@ -28,7 +28,7 @@ all: clean format lint security test build it doc readme makefile
 .PHONY: build
 build: 
 	@(\
-		xk6 build --with github.com/grafana/xk6-example=.;\
+		go run go.k6.io/xk6 build --with github.com/arukiidou/xk6-dukpt=.;\
 	)
 
 # Clean the working directory
@@ -64,7 +64,7 @@ it:
 lint: 
 	@(\
 		golangci-lint run ./...;\
-		xk6 lint;\
+		go run go.k6.io/xk6 lint;\
 	)
 
 # Generate the Makefile
@@ -85,8 +85,8 @@ readme:
 .PHONY: security
 security: 
 	@(\
-		gosec -quiet ./...;\
-		govulncheck ./...;\
+		go run github.com/securego/gosec/v2/cmd/gosec -quiet ./...;\
+		go run golang.org/x/vuln/cmd/govulncheck ./...;\
 	)
 
 # Run the tests

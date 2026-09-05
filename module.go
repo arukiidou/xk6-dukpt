@@ -1,7 +1,12 @@
-// Package example contains the xk6-example extension.
-package example
+// Authors: arukiidou <arukiidou@yahoo.co.jp>
+// SPDX-License-Identifier: Apache-2.0
 
-import "go.k6.io/k6/v2/js/modules"
+package xk6dukpt
+
+import (
+	"github.com/arukiidou/xk6-dukpt/dukpt"
+	"go.k6.io/k6/v2/js/modules"
+)
 
 type rootModule struct{}
 
@@ -16,10 +21,8 @@ type module struct {
 func (m *module) Exports() modules.Exports {
 	return modules.Exports{
 		Named: map[string]any{
-			"greeting":  m.greeting,
-			"b32encode": m.b32encode,
-			"b32decode": m.b32decode,
-			"Random":    m.random,
+			"derivationOfInitialKeyAsBase64":      dukpt.DerivationOfInitialKeyAsBase64,
+			"deriveCurrentTransactionKeyAsBase64": dukpt.DeriveCurrentTransactionKeyAsBase64,
 		},
 	}
 }

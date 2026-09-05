@@ -1,4 +1,7 @@
-package example
+// Authors: arukiidou <arukiidou@yahoo.co.jp>
+// SPDX-License-Identifier: Apache-2.0
+
+package xk6dukpt
 
 import (
 	_ "embed"

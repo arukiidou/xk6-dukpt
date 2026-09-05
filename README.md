@@ -6,7 +6,7 @@ This k6 extension showcases how to develop a k6 JavaScript extension using simpl
 
 
 ```javascript file=script.js
-import { greeting } from "k6/x/example";
+import { greeting } from "k6/x/dukpt";
 
 export default function () {
   console.log(greeting()) // Hello, World!
