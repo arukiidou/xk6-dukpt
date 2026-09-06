@@ -1,3 +1,4 @@
+import base64 from "./dukptBase64.test.js"
 import dukpt from "./dukpt.test.js"
 
 export const options = {
@@ -7,5 +8,6 @@ export const options = {
 }
 
 export default function () {
+  base64()
   dukpt()
 }
