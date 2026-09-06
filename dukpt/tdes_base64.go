@@ -61,11 +61,12 @@ func DerivationOfInitialKeyAsBase64(bdk, ksn string) (string, error) {
 
 // [des.DeriveCurrentTransactionKey] port from moov-io
 //
-// ik base64 string - 16 bytes initial key.
-// ksn base64 string - 10 bytes key serial number.
+// Params:
+//   - ik[ArrayBuffer] is 16 bytes initial key
+//   - ksn[ArrayBuffer] is 10 bytes key serial number
 //
 // Return Params:
-//   - result is base64 string - 16 bytes transaction key
+//   - result - 16 bytes transaction key
 //   - err
 func DeriveCurrentTransactionKey(ik, ksn []byte) ([]byte, error) {
 	return des.DeriveCurrentTransactionKey(ik, ksn)
@@ -73,11 +74,12 @@ func DeriveCurrentTransactionKey(ik, ksn []byte) ([]byte, error) {
 
 // [des.DerivationOfInitialKey] port from moov-io
 //
-// bdk base64 string - 16 bytes base derivation key.
-// ksn base64 string - 10 bytes key serial number.
+// Params:
+//   - ksn[ArrayBuffer] is 10 bytes key serial number
+//   - bdk[ArrayBuffer] is 16 bytes base derivative Key
 //
 // Return Params:
-//   - result is base64 string - 16 bytes initial key
+//   - result - 16 bytes initial key
 //   - err
 func DerivationOfInitialKey(bdk, ksn []byte) ([]byte, error) {
 	return des.DerivationOfInitialKey(bdk, ksn)

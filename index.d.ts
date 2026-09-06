@@ -37,9 +37,9 @@ export declare function deriveCurrentTransactionKeyAsBase64(
 /**
  * k6 API for [des.DerivationOfInitialKey] port from moov-io,
  * derives the initial key.
- * @param bdk The base derivation key as a base64 string.
- * @param ksn The key serial number as a base64 string.
- * @returns The derived initial key as a base64 string.
+ * @param bdk The base derivation key.
+ * @param ksn The key serial number.
+ * @returns The derived initial key.
  */
 export declare function derivationOfInitialKey(
   bdk: ArrayBuffer,
