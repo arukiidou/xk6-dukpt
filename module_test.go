@@ -1,4 +1,4 @@
-// Authors: arukiidou <arukiidou@yahoo.co.jp>
+// SPDX-FileCopyrightText: 2026 arukiidou <arukiidou@yahoo.co.jp>
 // SPDX-License-Identifier: Apache-2.0
 
 package xk6dukpt

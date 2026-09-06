@@ -1,4 +1,4 @@
-// Authors: arukiidou <arukiidou@yahoo.co.jp>
+// SPDX-FileCopyrightText: 2026 arukiidou <arukiidou@yahoo.co.jp>
 // SPDX-License-Identifier: Apache-2.0
 
 package dukpt
@@ -57,4 +57,28 @@ func DerivationOfInitialKeyAsBase64(bdk, ksn string) (string, error) {
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(rawCk), nil
+}
+
+// [des.DeriveCurrentTransactionKey] port from moov-io
+//
+// ik base64 string - 16 bytes initial key.
+// ksn base64 string - 10 bytes key serial number.
+//
+// Return Params:
+//   - result is base64 string - 16 bytes transaction key
+//   - err
+func DeriveCurrentTransactionKey(ik, ksn []byte) ([]byte, error) {
+	return des.DeriveCurrentTransactionKey(ik, ksn)
+}
+
+// [des.DerivationOfInitialKey] port from moov-io
+//
+// bdk base64 string - 16 bytes base derivation key.
+// ksn base64 string - 10 bytes key serial number.
+//
+// Return Params:
+//   - result is base64 string - 16 bytes initial key
+//   - err
+func DerivationOfInitialKey(bdk, ksn []byte) ([]byte, error) {
+	return des.DerivationOfInitialKey(bdk, ksn)
 }
