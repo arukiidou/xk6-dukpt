@@ -1,6 +1,20 @@
 # xk6-dukpt
 
-**k6 DUKPT extension porting with moov-io**
+**[k6](https://github.com/grafana/k6) DUKPT [extension](https://github.com/grafana/xk6) port from [moov-io](https://pkg.go.dev/github.com/moov-io/dukpt)**
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/arukiidou/xk6-dukpt.svg)](https://pkg.go.dev/github.com/arukiidou/xk6-dukpt)
+
+## How to Build
+
+```bash
+go install go.k6.io/xk6@latest
+xk6 build --k6-version latest --os linux --cgo 0 --with github.com/arukiidou/xk6-dukpt@latest
+# or
+# go get -tool go.k6.io/xk6@latest
+# go run go.k6.io/xk6 build --k6-version latest --os linux --cgo 0 --with github.com/arukiidou/xk6-dukpt@latest
+```
+
+# Example script
 
 ```typescript file=dukpt.ts
 import { check } from "k6";
@@ -12,24 +26,18 @@ export const options = {
   },
 };
 
-export default function () {
-  const ikExpected = "asKS+qExW02FirOj19WTOg==";//"0123456789ABCDEFFEDCBA9876543210";
-  const ckExpected = "BCZmtJGEz6No3pYo0Dl7yQ=="; //"042666B49184CFA368DE9628D0397BF9";
+export default async function () {
+  ...  
+}
 
-  const bdk = "ASNFZ4mrze/+3LqYdlQyEA=="; //"0123456789ABCDEFFEDCBA9876543210";
-  const ksn = "//+YdlQyEOAAAQ=="; //"FFFF9876543210E00001";
+async function example(bdk: string, ksn: string) {
 
   const ik = derivationOfInitialKeyAsBase64(bdk, ksn)
-  console.log("Actual: " + ik);
-  console.log("Expected: " + ikExpected);
-
   const ck = deriveCurrentTransactionKeyAsBase64(ik, ksn)
-  console.log("Actual: " + ck);
-  console.log("Expected: " + ckExpected);
 
   check(null, {
-    'derivationOfInitialKeyAsBase64(bdk, ksn)': () => ik === ikExpected,
-    'deriveCurrentTransactionKeyAsBase64(ik, ksn)': () => ck === ckExpected,
+    'derivationOfInitialKeyAsBase64(bdk, ksn)': () => ik === "...",
+    'deriveCurrentTransactionKeyAsBase64(ik, ksn)': () => ck === "...",
   });
 }
 
