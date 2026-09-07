@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 arukiidou <arukiidou@yahoo.co.jp>
 // SPDX-License-Identifier: Apache-2.0
 
+// Package dukpt is moov-io wrapper for DUKPT (Derived Unique Key Per Transaction) cryptography operations.
 package dukpt
 
 import "github.com/moov-io/dukpt/pkg/des"
