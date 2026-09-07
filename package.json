@@ -1,5 +1,5 @@
 {
-  "name": "xk6-quickstart",
+  "name": "xk6-dukpt",
   "version": "1.0.0",
   "description": "**[k6](https://github.com/grafana/k6) DUKPT [extension](https://github.com/grafana/xk6) port from [moov-io](https://pkg.go.dev/github.com/moov-io/dukpt)**",
   "main": "script.js",
@@ -16,7 +16,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/arukiidou/xk6-dukpt/issues"

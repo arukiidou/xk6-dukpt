@@ -1,8 +1,13 @@
 # xk6-dukpt
 
-**[k6](https://github.com/grafana/k6) DUKPT [extension](https://github.com/grafana/xk6) port from [moov-io](https://pkg.go.dev/github.com/moov-io/dukpt)**
+- [k6](https://github.com/grafana/k6) DUKPT [extension](https://github.com/grafana/xk6)
+- port from [moov-io](https://pkg.go.dev/github.com/moov-io/dukpt)
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/arukiidou/xk6-dukpt.svg)](https://pkg.go.dev/github.com/arukiidou/xk6-dukpt)
+
+## Requrements
+
+- k6 2.2.0+
 
 ## How to Build
 
@@ -45,11 +50,11 @@ async function example(bdk: string, ksn: string) {
 
 ## Download
 
-Building a custom k6 binary with the `xk6-example` extension is necessary for its use. You can download pre-built k6 binaries from the [Releases page](https://github.com/grafana/xk6-example/releases/).
+Building a custom k6 binary with the `xk6-dukpt` extension is necessary for its use. You can download pre-built k6 binaries from the [Releases page](https://github.com/arukiidou/xk6-dukpt/releases/).
 
 ## Build
 
-Use the [xk6](https://github.com/grafana/xk6) tool to build a custom k6 binary with the `xk6-example` extension. Refer to the [xk6 documentation](https://github.com/grafana/xk6) for more information.
+Use the [xk6](https://github.com/grafana/xk6) tool to build a custom k6 binary with the `xk6-dukpt` extension. Refer to the [xk6 documentation](https://github.com/grafana/xk6) for more information.
 
 ## Contribute
 
