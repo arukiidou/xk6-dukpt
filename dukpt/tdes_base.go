@@ -47,3 +47,58 @@ func DerivationOfInitialKey(bdk, ksn []byte) ([]byte, error) {
 func EncryptPin(currentKey []byte, pin, pan, format string) ([]byte, error) {
 	return des.EncryptPin(currentKey, pin, pan, format)
 }
+
+// [des.DecryptPin] port from moov-io
+//
+// Params:
+//   - currentKey[ArrayBuffer] is 16 bytes transaction key
+//   - ciphertext[ArrayBuffer] is encrypted pin block
+//   - pan is not formatted pan string
+//   - format is pinblock format
+//     ("ISO-0", "ISO-1", "ISO-2", "ISO-3", "ISO-4", "ANSI", "ECI1", "ECI2", "ECI3", "ECI4", "VISA1", "VISA2", "VISA3", "VISA4")
+//
+// Return Params:
+//   - result - pin string (plain text)
+//   - err
+func DecryptPin(currentKey, ciphertext []byte, pan, format string) (string, error) {
+	return des.DecryptPin(currentKey, ciphertext, pan, format)
+}
+
+// [des.EncryptData] port from moov-io
+//
+// Params:
+//   - currentKey[ArrayBuffer] is 16 bytes transaction key
+//   - iv[ArrayBuffer] is initial vector, null for the default zero vector
+//   - plainText is transaction request data
+//   - action is "request" or "response"
+//
+// Return Params:
+//   - result - encrypted data, zero padded to a multiple of 8 bytes
+//   - err
+func EncryptData(currentKey, iv []byte, plainText, action string) ([]byte, error) {
+	return des.EncryptData(currentKey, iv, plainText, action)
+}
+
+// [des.DecryptData] port from moov-io
+//
+// Params:
+//   - currentKey[ArrayBuffer] is 16 bytes transaction key
+//   - ciphertext[ArrayBuffer] is encrypted text
+//   - iv[ArrayBuffer] is initial vector, null for the default zero vector
+//   - action is "request" or "response"
+//
+// Return Params:
+//   - result - transaction request data, zero padded to a multiple of 8 bytes
+//   - err
+func DecryptData(currentKey, ciphertext, iv []byte, action string) (string, error) {
+	return des.DecryptData(currentKey, ciphertext, normalizeIV(iv), action)
+}
+
+// des.DecryptData widens the IV only when it is nil, so a zero-length one
+// reaches cipher.NewCBCDecrypter and panics.
+func normalizeIV(iv []byte) []byte {
+	if len(iv) == 0 {
+		return nil
+	}
+	return iv
+}

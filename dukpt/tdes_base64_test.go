@@ -45,11 +45,13 @@ func TestBase64MoovCompatibility(t *testing.T) {
 
 	var InitialSequence = []SequenceItem{
 		{
-			Bdk:        pkg.HexDecode("0123456789ABCDEFFEDCBA9876543210"), // ASNFZ4mrze/+3LqYdlQyEA==
-			Ksn:        pkg.HexDecode("FFFF9876543210E00001"),             // //+YdlQyEOAAAQ==
-			InitialKey: pkg.HexDecode("6AC292FAA1315B4D858AB3A3D7D5933A"), // asKS+qExW02FirOj19WTOg==
-			CurrentKey: pkg.HexDecode("042666B49184CFA368DE9628D0397BC9"), // BCZmtJGEz6No3pYo0Dl7yQ==
-			PinEnc:     pkg.HexDecode("1B9C1845EB993A7A"),                 // G5wYReuZOno=
+			Bdk:        pkg.HexDecode("0123456789ABCDEFFEDCBA9876543210"),                 // ASNFZ4mrze/+3LqYdlQyEA==
+			Ksn:        pkg.HexDecode("FFFF9876543210E00001"),                             // //+YdlQyEOAAAQ==
+			InitialKey: pkg.HexDecode("6AC292FAA1315B4D858AB3A3D7D5933A"),                 // asKS+qExW02FirOj19WTOg==
+			CurrentKey: pkg.HexDecode("042666B49184CFA368DE9628D0397BC9"),                 // BCZmtJGEz6No3pYo0Dl7yQ==
+			PinEnc:     pkg.HexDecode("1B9C1845EB993A7A"),                                 // G5wYReuZOno=
+			DataReqEnc: pkg.HexDecode("FC0D53B7EA1FDA9EE68AAF2E70D9B9506229BE2AA993F04F"), // /A1Tt+of2p7miq8ucNm5UGIpviqpk/BP
+			DataResEnc: pkg.HexDecode("1FCC89AF66222F27B903898BB2BC8589CDBFDE5EC6AFCC25"), // H8yJr2YiLye5A4mLsryFic2/3l7Gr8wl
 		}}
 
 	for index, moov := range InitialSequence {
@@ -74,6 +76,26 @@ func TestBase64MoovCompatibility(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, pinEnc, base64.StdEncoding.EncodeToString(desPinEnc))
 			require.Equal(t, b64.PinEnc, pinEnc)
+
+			decPin, err := DecryptPinAsBase64(ck, pinEnc, pan, formatVersion)
+			require.NoError(t, err)
+			require.Equal(t, pin, decPin)
+
+			reqEnc, err := EncryptDataAsBase64(ck, "", data, pkg.ActionRequest)
+			require.NoError(t, err)
+			require.Equal(t, b64.DataReqEnc, reqEnc)
+
+			decReq, err := DecryptDataAsBase64(ck, reqEnc, "", pkg.ActionRequest)
+			require.NoError(t, err)
+			require.Equal(t, data, decReq[:len(data)])
+
+			resEnc, err := EncryptDataAsBase64(ck, "", data, pkg.ActionResponse)
+			require.NoError(t, err)
+			require.Equal(t, b64.DataResEnc, resEnc)
+
+			decRes, err := DecryptDataAsBase64(ck, resEnc, "", pkg.ActionResponse)
+			require.NoError(t, err)
+			require.Equal(t, data, decRes[:len(data)])
 		})
 	}
 }
