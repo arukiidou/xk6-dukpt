@@ -82,3 +82,81 @@ func EncryptPinAsBase64(currentKey, pin, pan, format string) (string, error) {
 	}
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
+
+// [des.DecryptPin] port from moov-io
+//
+// currentKey base64 string - 16 bytes transaction key.
+// ciphertext base64 string - encrypted pin block.
+// pan is not formatted pan string.
+// format is pinblock format
+// ("ISO-0", "ISO-1", "ISO-2", "ISO-3", "ISO-4", "ANSI", "ECI1", "ECI2", "ECI3", "ECI4", "VISA1", "VISA2", "VISA3", "VISA4").
+//
+// Return Params:
+//   - result is pin string (plain text)
+//   - err
+func DecryptPinAsBase64(currentKey, ciphertext, pan, format string) (string, error) {
+	rawCurrentKey, err := base64.StdEncoding.DecodeString(currentKey)
+	if err != nil {
+		return "", err
+	}
+	rawCiphertext, err := base64.StdEncoding.DecodeString(ciphertext)
+	if err != nil {
+		return "", err
+	}
+
+	return des.DecryptPin(rawCurrentKey, rawCiphertext, pan, format)
+}
+
+// [des.EncryptData] port from moov-io
+//
+// currentKey base64 string - 16 bytes transaction key.
+// iv base64 string - initial vector, empty for the default zero vector.
+// plainText is transaction request data.
+// action is "request" or "response".
+//
+// Return Params:
+//   - result is base64 string - encrypted data, zero padded to a multiple of 8 bytes
+//   - err
+func EncryptDataAsBase64(currentKey, iv, plainText, action string) (string, error) {
+	rawCurrentKey, err := base64.StdEncoding.DecodeString(currentKey)
+	if err != nil {
+		return "", err
+	}
+	rawIv, err := base64.StdEncoding.DecodeString(iv)
+	if err != nil {
+		return "", err
+	}
+
+	ciphertext, err := des.EncryptData(rawCurrentKey, normalizeIV(rawIv), plainText, action)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(ciphertext), nil
+}
+
+// [des.DecryptData] port from moov-io
+//
+// currentKey base64 string - 16 bytes transaction key.
+// ciphertext base64 string - encrypted text.
+// iv base64 string - initial vector, empty for the default zero vector.
+// action is "request" or "response".
+//
+// Return Params:
+//   - result is transaction request data (plain text), zero padded to a multiple of 8 bytes
+//   - err
+func DecryptDataAsBase64(currentKey, ciphertext, iv, action string) (string, error) {
+	rawCurrentKey, err := base64.StdEncoding.DecodeString(currentKey)
+	if err != nil {
+		return "", err
+	}
+	rawCiphertext, err := base64.StdEncoding.DecodeString(ciphertext)
+	if err != nil {
+		return "", err
+	}
+	rawIv, err := base64.StdEncoding.DecodeString(iv)
+	if err != nil {
+		return "", err
+	}
+
+	return des.DecryptData(rawCurrentKey, rawCiphertext, normalizeIV(rawIv), action)
+}
