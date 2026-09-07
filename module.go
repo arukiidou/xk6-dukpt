@@ -7,7 +7,6 @@ import (
 	"maps"
 
 	"github.com/arukiidou/xk6-dukpt/dukpt"
-	"github.com/moov-io/dukpt/pkg/des"
 	"go.k6.io/k6/v2/js/modules"
 )
 
@@ -23,8 +22,8 @@ type module struct {
 
 func (m *module) Exports() modules.Exports {
 	std := map[string]any{
-		"derivationOfInitialKey":      des.DerivationOfInitialKey,
-		"deriveCurrentTransactionKey": des.DeriveCurrentTransactionKey,
+		"derivationOfInitialKey":      dukpt.DerivationOfInitialKey,
+		"deriveCurrentTransactionKey": dukpt.DeriveCurrentTransactionKey,
 	}
 	base64 := map[string]any{
 		"derivationOfInitialKeyAsBase64":      dukpt.DerivationOfInitialKeyAsBase64,
