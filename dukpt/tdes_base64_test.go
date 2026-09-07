@@ -49,6 +49,7 @@ func TestBase64MoovCompatibility(t *testing.T) {
 			Ksn:        pkg.HexDecode("FFFF9876543210E00001"),             // //+YdlQyEOAAAQ==
 			InitialKey: pkg.HexDecode("6AC292FAA1315B4D858AB3A3D7D5933A"), // asKS+qExW02FirOj19WTOg==
 			CurrentKey: pkg.HexDecode("042666B49184CFA368DE9628D0397BC9"), // BCZmtJGEz6No3pYo0Dl7yQ==
+			PinEnc:     pkg.HexDecode("1B9C1845EB993A7A"),                 // G5wYReuZOno=
 		}}
 
 	for index, moov := range InitialSequence {
@@ -66,6 +67,13 @@ func TestBase64MoovCompatibility(t *testing.T) {
 			desCk, err := des.DeriveCurrentTransactionKey(desIk, moov.Ksn)
 			require.NoError(t, err)
 			require.Equal(t, ck, base64.StdEncoding.EncodeToString(desCk))
+
+			pinEnc, err := EncryptPinAsBase64(ck, pin, pan, formatVersion)
+			require.NoError(t, err)
+			desPinEnc, err := des.EncryptPin(desCk, pin, pan, formatVersion)
+			require.NoError(t, err)
+			require.Equal(t, pinEnc, base64.StdEncoding.EncodeToString(desPinEnc))
+			require.Equal(t, b64.PinEnc, pinEnc)
 		})
 	}
 }

@@ -30,3 +30,19 @@ func DeriveCurrentTransactionKey(ik, ksn []byte) ([]byte, error) {
 func DerivationOfInitialKey(bdk, ksn []byte) ([]byte, error) {
 	return des.DerivationOfInitialKey(bdk, ksn)
 }
+
+// [des.EncryptPin] port from moov-io
+//
+// Params:
+//   - currentKey[ArrayBuffer] is 16 bytes transaction key
+//   - pin is not formatted pin string
+//   - pan is not formatted pan string
+//   - format is pinblock format
+//     ("ISO-0", "ISO-1", "ISO-2", "ISO-3", "ISO-4", "ANSI", "ECI1", "ECI2", "ECI3", "ECI4", "VISA1", "VISA2", "VISA3", "VISA4")
+//
+// Return Params:
+//   - result - cipher text
+//   - err
+func EncryptPin(currentKey []byte, pin, pan, format string) ([]byte, error) {
+	return des.EncryptPin(currentKey, pin, pan, format)
+}

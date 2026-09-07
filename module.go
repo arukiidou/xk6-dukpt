@@ -24,10 +24,12 @@ func (m *module) Exports() modules.Exports {
 	std := map[string]any{
 		"derivationOfInitialKey":      dukpt.DerivationOfInitialKey,
 		"deriveCurrentTransactionKey": dukpt.DeriveCurrentTransactionKey,
+		"encryptPin":                  dukpt.EncryptPin,
 	}
 	base64 := map[string]any{
 		"derivationOfInitialKeyAsBase64":      dukpt.DerivationOfInitialKeyAsBase64,
 		"deriveCurrentTransactionKeyAsBase64": dukpt.DeriveCurrentTransactionKeyAsBase64,
+		"encryptPinAsBase64":                  dukpt.EncryptPinAsBase64,
 	}
 	maps.Copy(std, base64)
 
