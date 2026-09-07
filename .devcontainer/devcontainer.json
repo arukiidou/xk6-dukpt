@@ -1,5 +1,5 @@
 {
-  "name": "xk6-example",
+  "name": "xk6-dukpt",
   "image": "mcr.microsoft.com/devcontainers/base:2-bookworm",
   "customizations": {
     "vscode": {

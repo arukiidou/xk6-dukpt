@@ -58,3 +58,27 @@ func DerivationOfInitialKeyAsBase64(bdk, ksn string) (string, error) {
 	}
 	return base64.StdEncoding.EncodeToString(rawCk), nil
 }
+
+// [des.EncryptPin] port from moov-io
+//
+// currentKey base64 string - 16 bytes transaction key.
+// pin is not formatted pin string.
+// pan is not formatted pan string.
+// format is pinblock format
+// ("ISO-0", "ISO-1", "ISO-2", "ISO-3", "ISO-4", "ANSI", "ECI1", "ECI2", "ECI3", "ECI4", "VISA1", "VISA2", "VISA3", "VISA4").
+//
+// Return Params:
+//   - result is base64 string - cipher text
+//   - err
+func EncryptPinAsBase64(currentKey, pin, pan, format string) (string, error) {
+	rawCurrentKey, err := base64.StdEncoding.DecodeString(currentKey)
+	if err != nil {
+		return "", err
+	}
+
+	ciphertext, err := des.EncryptPin(rawCurrentKey, pin, pan, format)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(ciphertext), nil
+}
