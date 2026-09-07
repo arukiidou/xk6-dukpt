@@ -1,0 +1,28 @@
+{
+  "name": "xk6-quickstart",
+  "version": "1.0.0",
+  "description": "**[k6](https://github.com/grafana/k6) DUKPT [extension](https://github.com/grafana/xk6) port from [moov-io](https://pkg.go.dev/github.com/moov-io/dukpt)**",
+  "main": "script.js",
+  "directories": {
+    "test": "test",
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arukiidou/xk6-dukpt.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/arukiidou/xk6-dukpt/issues"
+  },
+  "homepage": "https://github.com/arukiidou/xk6-dukpt#readme",
+  "devDependencies": {
+    "@types/k6": "^2.2.0"
+  }
+}
