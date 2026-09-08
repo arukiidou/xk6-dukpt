@@ -94,6 +94,20 @@ func DecryptData(currentKey, ciphertext, iv []byte, action string) (string, erro
 	return des.DecryptData(currentKey, ciphertext, normalizeIV(iv), action)
 }
 
+// [des.GenerateMac] port from moov-io
+//
+// Params:
+//   - currentKey[ArrayBuffer] is 16 bytes transaction key
+//   - plainText is transaction request data
+//   - action is "request" or "response"
+//
+// Return Params:
+//   - result - 8 bytes mac, use the first 4 bytes as the ANSI X9.24-1 mac
+//   - err
+func GenerateMac(currentKey []byte, plainText, action string) ([]byte, error) {
+	return des.GenerateMac(currentKey, plainText, action)
+}
+
 // des.DecryptData widens the IV only when it is nil, so a zero-length one
 // reaches cipher.NewCBCDecrypter and panics.
 func normalizeIV(iv []byte) []byte {

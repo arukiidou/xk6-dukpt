@@ -1,5 +1,5 @@
 import { check } from "k6";
-import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64 } from "k6/x/dukpt";
+import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64, generateMacAsBase64 } from "k6/x/dukpt";
 
 export const options = {
   thresholds: {
@@ -22,8 +22,15 @@ export default function () {
   console.log("Actual: " + ck);
   console.log("Expected: " + ckExpected);
 
+  // generateMacAsBase64 returns 8 bytes; the ANSI X9.24-1 mac is the first 4.
+  const macExpected = "nMx4Fz/E+2Q="; //"9CCC78173FC4FB64";
+  const mac = generateMacAsBase64(ck, "4012345678909D987", "request")
+  console.log("Actual: " + mac);
+  console.log("Expected: " + macExpected);
+
   check(null, {
     'derivationOfInitialKeyAsBase64(bdk, ksn)': () => ik === ikExpected,
     'deriveCurrentTransactionKeyAsBase64(ik, ksn)': () => ck === ckExpected,
+    'generateMacAsBase64(ck, data, "request")': () => mac === macExpected,
   });
 }

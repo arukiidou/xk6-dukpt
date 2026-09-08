@@ -87,6 +87,14 @@ func TestBase64MoovCompatibility(t *testing.T) {
 			decRes, err := DecryptDataAsBase64(ck, resEnc, "", pkg.ActionResponse)
 			require.NoError(t, err)
 			require.Equal(t, data, decRes[:len(data)])
+
+			reqMac, err := GenerateMacAsBase64(ck, data, pkg.ActionRequest)
+			require.NoError(t, err)
+			require.Equal(t, b64.RequestMac, reqMac)
+
+			resMac, err := GenerateMacAsBase64(ck, data, pkg.ActionResponse)
+			require.NoError(t, err)
+			require.Equal(t, b64.ResponseMac, resMac)
 		})
 	}
 }

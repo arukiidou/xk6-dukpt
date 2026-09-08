@@ -160,3 +160,25 @@ func DecryptDataAsBase64(currentKey, ciphertext, iv, action string) (string, err
 
 	return des.DecryptData(rawCurrentKey, rawCiphertext, normalizeIV(rawIv), action)
 }
+
+// [des.GenerateMac] port from moov-io
+//
+// currentKey base64 string - 16 bytes transaction key.
+// plainText is transaction request data.
+// action is "request" or "response".
+//
+// Return Params:
+//   - result is base64 string - 8 bytes mac, use the first 4 bytes as the ANSI X9.24-1 mac
+//   - err
+func GenerateMacAsBase64(currentKey, plainText, action string) (string, error) {
+	rawCurrentKey, err := base64.StdEncoding.DecodeString(currentKey)
+	if err != nil {
+		return "", err
+	}
+
+	mac, err := des.GenerateMac(rawCurrentKey, plainText, action)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(mac), nil
+}

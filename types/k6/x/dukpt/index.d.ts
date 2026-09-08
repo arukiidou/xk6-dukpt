@@ -99,6 +99,20 @@ export declare function decryptDataAsBase64(
 ): string;
 
 /**
+ * k6 API for [des.GenerateMac] port from moov-io,
+ * generates a MAC using the DUKPT transaction key.
+ * @param currentKey The transaction key as a base64 string.
+ * @param plainText The transaction request data.
+ * @param action The request or response action.
+ * @returns The 8 byte mac as a base64 string. Use the first 4 bytes as the ANSI X9.24-1 mac.
+ */
+export declare function generateMacAsBase64(
+  currentKey: string,
+  plainText: string,
+  action: DukptAction
+): string;
+
+/**
  * k6 API for [des.DerivationOfInitialKey] port from moov-io,
  * derives the initial key.
  * @param bdk The base derivation key.
@@ -209,3 +223,17 @@ export declare function decryptData(
   iv: ArrayBuffer | null,
   action: DukptAction
 ): string;
+
+/**
+ * k6 API for [des.GenerateMac] port from moov-io,
+ * generates a MAC using the DUKPT transaction key.
+ * @param currentKey The transaction key.
+ * @param plainText The transaction request data.
+ * @param action The request or response action.
+ * @returns The 8 byte mac. Use the first 4 bytes as the ANSI X9.24-1 mac.
+ */
+export declare function generateMac(
+  currentKey: ArrayBuffer,
+  plainText: string,
+  action: DukptAction
+): ArrayBuffer;

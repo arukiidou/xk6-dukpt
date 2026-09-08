@@ -28,6 +28,7 @@ func (m *module) Exports() modules.Exports {
 		"decryptPin":                  dukpt.DecryptPin,
 		"encryptData":                 dukpt.EncryptData,
 		"decryptData":                 dukpt.DecryptData,
+		"generateMac":                 dukpt.GenerateMac,
 	}
 	base64 := map[string]any{
 		"derivationOfInitialKeyAsBase64":      dukpt.DerivationOfInitialKeyAsBase64,
@@ -36,6 +37,7 @@ func (m *module) Exports() modules.Exports {
 		"decryptPinAsBase64":                  dukpt.DecryptPinAsBase64,
 		"encryptDataAsBase64":                 dukpt.EncryptDataAsBase64,
 		"decryptDataAsBase64":                 dukpt.DecryptDataAsBase64,
+		"generateMacAsBase64":                 dukpt.GenerateMacAsBase64,
 	}
 	maps.Copy(std, base64)
 
