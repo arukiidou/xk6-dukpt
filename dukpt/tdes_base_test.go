@@ -32,6 +32,9 @@ type SequenceItem struct {
 	ResponseMac []byte
 }
 
+// Common BDK for all test sequences, used to derive the initial key.
+var moovTestBdk = pkg.HexDecode("0123456789ABCDEFFEDCBA9876543210") // ASNFZ4mrze/+3LqYdlQyEA==
+
 // The A.4.2 Initial Sequence vectors, shared by the raw and the base64 suites.
 // Every sequence derives from the same BDK, so the initial key is constant and
 // only the KSN counter advances.
@@ -39,7 +42,7 @@ type SequenceItem struct {
 // RequestMac and ResponseMac stay empty: this package exposes no MAC wrapper.
 var moovInitialSequence = []SequenceItem{
 	{
-		Bdk:        pkg.HexDecode("0123456789ABCDEFFEDCBA9876543210"),                 // ASNFZ4mrze/+3LqYdlQyEA==
+		Bdk:        moovTestBdk,
 		Ksn:        pkg.HexDecode("FFFF9876543210E00001"),                             // //+YdlQyEOAAAQ==
 		InitialKey: pkg.HexDecode("6AC292FAA1315B4D858AB3A3D7D5933A"),                 // asKS+qExW02FirOj19WTOg==
 		CurrentKey: pkg.HexDecode("042666B49184CFA368DE9628D0397BC9"),                 // BCZmtJGEz6No3pYo0Dl7yQ==
@@ -48,7 +51,7 @@ var moovInitialSequence = []SequenceItem{
 		DataResEnc: pkg.HexDecode("1FCC89AF66222F27B903898BB2BC8589CDBFDE5EC6AFCC25"), // H8yJr2YiLye5A4mLsryFic2/3l7Gr8wl
 	},
 	{
-		Bdk:        pkg.HexDecode("0123456789ABCDEFFEDCBA9876543210"),                 // ASNFZ4mrze/+3LqYdlQyEA==
+		Bdk:        moovTestBdk,
 		Ksn:        pkg.HexDecode("FFFF9876543210E00002"),                             // //+YdlQyEOAAAg==
 		InitialKey: pkg.HexDecode("6AC292FAA1315B4D858AB3A3D7D5933A"),                 // asKS+qExW02FirOj19WTOg==
 		CurrentKey: pkg.HexDecode("C46551CEF9FD24B0AA9AD834130D3BC7"),                 // xGVRzvn9JLCqmtg0Ew07xw==
@@ -57,7 +60,7 @@ var moovInitialSequence = []SequenceItem{
 		DataResEnc: pkg.HexDecode("5B692A6B1FDD5E25B0DEFAFDE1672E402F8011360CFF3508"), // W2kqax/dXiWw3vr94WcuQC+AETYM/zUI
 	},
 	{
-		Bdk:        pkg.HexDecode("0123456789ABCDEFFEDCBA9876543210"),                 // ASNFZ4mrze/+3LqYdlQyEA==
+		Bdk:        moovTestBdk,
 		Ksn:        pkg.HexDecode("FFFF9876543210E00003"),                             // //+YdlQyEOAAAw==
 		InitialKey: pkg.HexDecode("6AC292FAA1315B4D858AB3A3D7D5933A"),                 // asKS+qExW02FirOj19WTOg==
 		CurrentKey: pkg.HexDecode("0DF3D9422ACA56E547676D07AD6BADFA"),                 // DfPZQirKVuVHZ20HrWut+g==
@@ -66,7 +69,7 @@ var moovInitialSequence = []SequenceItem{
 		DataResEnc: pkg.HexDecode("345992D4163E4926C927BFD8ABD5D76F087A9CE81D5A27B8"), // NFmS1BY+SSbJJ7/Yq9XXbwh6nOgdWie4
 	},
 	{
-		Bdk:        pkg.HexDecode("0123456789ABCDEFFEDCBA9876543210"),                 // ASNFZ4mrze/+3LqYdlQyEA==
+		Bdk:        moovTestBdk,
 		Ksn:        pkg.HexDecode("FFFF9876543210E00004"),                             // //+YdlQyEOAABA==
 		InitialKey: pkg.HexDecode("6AC292FAA1315B4D858AB3A3D7D5933A"),                 // asKS+qExW02FirOj19WTOg==
 		CurrentKey: pkg.HexDecode("279C0F6AEED0BE652B2C733E1383AE91"),                 // J5wPau7QvmUrLHM+E4OukQ==
@@ -75,7 +78,7 @@ var moovInitialSequence = []SequenceItem{
 		DataResEnc: pkg.HexDecode("418C7413576C0D1819E785D3807AF32334231FDEC23414DB"), // QYx0E1dsDRgZ54XTgHrzIzQjH97CNBTb
 	},
 	{
-		Bdk:        pkg.HexDecode("0123456789ABCDEFFEDCBA9876543210"),                 // ASNFZ4mrze/+3LqYdlQyEA==
+		Bdk:        moovTestBdk,
 		Ksn:        pkg.HexDecode("FFFF9876543210E00005"),                             // //+YdlQyEOAABQ==
 		InitialKey: pkg.HexDecode("6AC292FAA1315B4D858AB3A3D7D5933A"),                 // asKS+qExW02FirOj19WTOg==
 		CurrentKey: pkg.HexDecode("5F8DC6D2C845C125508DDC048093B83F"),                 // X43G0shFwSVQjdwEgJO4Pw==
