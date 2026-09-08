@@ -43,18 +43,7 @@ func newSequenceBase64Item(seq SequenceItem) SequenceBase64Item {
 func TestBase64MoovCompatibility(t *testing.T) {
 	t.Parallel()
 
-	var InitialSequence = []SequenceItem{
-		{
-			Bdk:        pkg.HexDecode("0123456789ABCDEFFEDCBA9876543210"),                 // ASNFZ4mrze/+3LqYdlQyEA==
-			Ksn:        pkg.HexDecode("FFFF9876543210E00001"),                             // //+YdlQyEOAAAQ==
-			InitialKey: pkg.HexDecode("6AC292FAA1315B4D858AB3A3D7D5933A"),                 // asKS+qExW02FirOj19WTOg==
-			CurrentKey: pkg.HexDecode("042666B49184CFA368DE9628D0397BC9"),                 // BCZmtJGEz6No3pYo0Dl7yQ==
-			PinEnc:     pkg.HexDecode("1B9C1845EB993A7A"),                                 // G5wYReuZOno=
-			DataReqEnc: pkg.HexDecode("FC0D53B7EA1FDA9EE68AAF2E70D9B9506229BE2AA993F04F"), // /A1Tt+of2p7miq8ucNm5UGIpviqpk/BP
-			DataResEnc: pkg.HexDecode("1FCC89AF66222F27B903898BB2BC8589CDBFDE5EC6AFCC25"), // H8yJr2YiLye5A4mLsryFic2/3l7Gr8wl
-		}}
-
-	for index, moov := range InitialSequence {
+	for index, moov := range moovInitialSequence {
 		t.Run(fmt.Sprintf("Sequence #%d KSN: %s", index+1, pkg.HexEncode(moov.Ksn)), func(t *testing.T) {
 			b64 := newSequenceBase64Item(moov)
 
@@ -63,12 +52,14 @@ func TestBase64MoovCompatibility(t *testing.T) {
 			desIk, err := des.DerivationOfInitialKey(moov.Bdk, moov.Ksn)
 			require.NoError(t, err)
 			require.Equal(t, ik, base64.StdEncoding.EncodeToString(desIk))
+			require.Equal(t, b64.InitialKey, ik)
 
 			ck, err := DeriveCurrentTransactionKeyAsBase64(ik, b64.Ksn)
 			require.NoError(t, err)
 			desCk, err := des.DeriveCurrentTransactionKey(desIk, moov.Ksn)
 			require.NoError(t, err)
 			require.Equal(t, ck, base64.StdEncoding.EncodeToString(desCk))
+			require.Equal(t, b64.CurrentKey, ck)
 
 			pinEnc, err := EncryptPinAsBase64(ck, pin, pan, formatVersion)
 			require.NoError(t, err)
