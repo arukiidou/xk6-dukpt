@@ -32,6 +32,8 @@ func Test_module(t *testing.T) { //nolint:tparallel
 		{name: "decryptPinAsBase64(currentKey, ciphertext, pan, format)", check: `mod.decryptPinAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "G5wYReuZOno=", "4012345678909", "ISO-0") === "1234"`},
 		{name: "encryptDataAsBase64(currentKey, iv, plainText, action)", check: `mod.encryptDataAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "", "4012345678909D987", "request") === "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"`},
 		{name: "decryptDataAsBase64(currentKey, ciphertext, iv, action)", check: `mod.decryptDataAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP", "", "request").slice(0, 17) === "4012345678909D987"`},
+		{name: `generateMacAsBase64(currentKey, plainText, "request")`, check: `mod.generateMacAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "4012345678909D987", "request") === "nMx4Fz/E+2Q="`},
+		{name: `generateMacAsBase64(currentKey, plainText, "response")`, check: `mod.generateMacAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "4012345678909D987", "response") === "IDZCI8H/APo="`},
 	}
 	for _, tt := range tests { //nolint:paralleltest
 		t.Run(tt.name, func(t *testing.T) {

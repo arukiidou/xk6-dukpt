@@ -1,5 +1,5 @@
 import { check } from "k6";
-import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64, encryptPinAsBase64, decryptPinAsBase64, encryptDataAsBase64, decryptDataAsBase64 } from "k6/x/dukpt";
+import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64, encryptPinAsBase64, decryptPinAsBase64, encryptDataAsBase64, decryptDataAsBase64, generateMacAsBase64 } from "k6/x/dukpt";
 
 export const options = {
   thresholds: {
@@ -47,5 +47,13 @@ export default function () {
     'encryptDataAsBase64(ck, "", data, "response")': () => resEnc === dataResEncExpected,
     'decryptDataAsBase64(ck, reqEnc, "", "request")': () => decryptDataAsBase64(ck, reqEnc, "", "request").slice(0, data.length) === data,
     'decryptDataAsBase64(ck, resEnc, "", "response")': () => decryptDataAsBase64(ck, resEnc, "", "response").slice(0, data.length) === data,
+  });
+
+  const reqMacExpected = "nMx4Fz/E+2Q="; //"9CCC78173FC4FB64";
+  const resMacExpected = "IDZCI8H/APo="; //"20364223C1FF00FA";
+
+  check(null, {
+    'generateMacAsBase64(ck, data, "request")': () => generateMacAsBase64(ck, data, "request") === reqMacExpected,
+    'generateMacAsBase64(ck, data, "response")': () => generateMacAsBase64(ck, data, "response") === resMacExpected,
   });
 }

@@ -1,6 +1,6 @@
 import { check } from "k6";
 import encoding from 'k6/encoding';
-import { derivationOfInitialKey, deriveCurrentTransactionKey, encryptPin, decryptPin, encryptData, decryptData } from "k6/x/dukpt";
+import { derivationOfInitialKey, deriveCurrentTransactionKey, encryptPin, decryptPin, encryptData, decryptData, generateMac } from "k6/x/dukpt";
 
 export const options = {
   thresholds: {
@@ -49,5 +49,16 @@ export default async function () {
     'encryptData(ck, null, data, "response")': () => encoding.b64encode(resEnc) === dataResEncExpected,
     'decryptData(ck, reqEnc, null, "request")': () => decryptData(ck, reqEnc, null, "request").slice(0, data.length) === data,
     'decryptData(ck, resEnc, null, "response")': () => decryptData(ck, resEnc, null, "response").slice(0, data.length) === data,
+  });
+
+  const reqMacExpected = "nMx4Fz/E+2Q="; //"9CCC78173FC4FB64";
+  const resMacExpected = "IDZCI8H/APo="; //"20364223C1FF00FA";
+
+  const reqMac = generateMac(ck, data, "request");
+  const resMac = generateMac(ck, data, "response");
+
+  check(null, {
+    'generateMac(ck, data, "request")': () => encoding.b64encode(reqMac) === reqMacExpected,
+    'generateMac(ck, data, "response")': () => encoding.b64encode(resMac) === resMacExpected,
   });
 }
