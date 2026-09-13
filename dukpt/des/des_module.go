@@ -41,7 +41,17 @@ func (m *module) Exports() modules.Exports {
 		"decryptDataAsBase64":                 DecryptDataAsBase64,
 		"generateMacAsBase64":                 GenerateMacAsBase64,
 	}
+	hexs := map[string]any{
+		"derivationOfInitialKeyAsHex":      DerivationOfInitialKeyAsHex,
+		"deriveCurrentTransactionKeyAsHex": DeriveCurrentTransactionKeyAsHex,
+		"encryptPinAsHex":                  EncryptPinAsHex,
+		"decryptPinAsHex":                  DecryptPinAsHex,
+		"encryptDataAsHex":                 EncryptDataAsHex,
+		"decryptDataAsHex":                 DecryptDataAsHex,
+		"generateMacAsHex":                 GenerateMacAsHex,
+	}
 	maps.Copy(base, base64)
+	maps.Copy(base, hexs)
 
 	return modules.Exports{
 		Named: base,

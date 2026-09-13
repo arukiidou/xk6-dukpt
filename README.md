@@ -62,6 +62,25 @@ const mac = generateMacAsBase64(ck, "4012345678909D987", "request");
 // the X9.24-1 mac is the first 4 bytes: 9CCC7817
 ```
 
+## Hex API
+
+Every Base64 API has a hex counterpart with the `AsHex` suffix
+(`derivationOfInitialKeyAsHex`, `deriveCurrentTransactionKeyAsHex`, `encryptPinAsHex`,
+`decryptPinAsHex`, `encryptDataAsHex`, `decryptDataAsHex`, `generateMacAsHex`).
+Inputs are case-insensitive hex strings; outputs are **uppercase** hex, so test vectors can be used as-is:
+
+```typescript
+import { derivationOfInitialKeyAsHex, deriveCurrentTransactionKeyAsHex, generateMacAsHex } from "k6/x/dukpt/des";
+
+const ik = derivationOfInitialKeyAsHex("0123456789ABCDEFFEDCBA9876543210", "FFFF9876543210E00001");
+const ck = deriveCurrentTransactionKeyAsHex(ik, "FFFF9876543210E00001");
+// ck === "042666B49184CFA368DE9628D0397BC9"
+
+const mac = generateMacAsHex(ck, "4012345678909D987", "request");
+// mac === "9CCC78173FC4FB64"
+// the X9.24-1 mac is the first 8 hex characters: mac.slice(0, 8) === "9CCC7817"
+```
+
 ## Download
 
 Building a custom k6 binary with the `xk6-dukpt` extension is necessary for its use. You can download pre-built k6 binaries from the [Releases page](https://github.com/arukiidou/xk6-dukpt/releases/).

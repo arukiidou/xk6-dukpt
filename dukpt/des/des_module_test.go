@@ -34,6 +34,14 @@ func Test_module(t *testing.T) { //nolint:tparallel
 		{name: "decryptDataAsBase64(currentKey, ciphertext, iv, action)", check: `mod.decryptDataAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP", "", "request").slice(0, 17) === "4012345678909D987"`},
 		{name: `generateMacAsBase64(currentKey, plainText, "request")`, check: `mod.generateMacAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "4012345678909D987", "request") === "nMx4Fz/E+2Q="`},
 		{name: `generateMacAsBase64(currentKey, plainText, "response")`, check: `mod.generateMacAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "4012345678909D987", "response") === "IDZCI8H/APo="`},
+		{name: "derivationOfInitialKeyAsHex(bdk, ksn)", check: `mod.derivationOfInitialKeyAsHex("0123456789ABCDEFFEDCBA9876543210", "FFFF9876543210E00001") === "6AC292FAA1315B4D858AB3A3D7D5933A"`},
+		{name: "deriveCurrentTransactionKeyAsHex(ik, ksn)", check: `mod.deriveCurrentTransactionKeyAsHex("6AC292FAA1315B4D858AB3A3D7D5933A", "FFFF9876543210E00001") === "042666B49184CFA368DE9628D0397BC9"`},
+		{name: "encryptPinAsHex(currentKey, pin, pan, format)", check: `mod.encryptPinAsHex("042666B49184CFA368DE9628D0397BC9", "1234", "4012345678909", "ISO-0") === "1B9C1845EB993A7A"`},
+		{name: "decryptPinAsHex(currentKey, ciphertext, pan, format)", check: `mod.decryptPinAsHex("042666B49184CFA368DE9628D0397BC9", "1B9C1845EB993A7A", "4012345678909", "ISO-0") === "1234"`},
+		{name: "encryptDataAsHex(currentKey, iv, plainText, action)", check: `mod.encryptDataAsHex("042666B49184CFA368DE9628D0397BC9", "", "4012345678909D987", "request") === "FC0D53B7EA1FDA9EE68AAF2E70D9B9506229BE2AA993F04F"`},
+		{name: "decryptDataAsHex(currentKey, ciphertext, iv, action)", check: `mod.decryptDataAsHex("042666B49184CFA368DE9628D0397BC9", "FC0D53B7EA1FDA9EE68AAF2E70D9B9506229BE2AA993F04F", "", "request").slice(0, 17) === "4012345678909D987"`},
+		{name: `generateMacAsHex(currentKey, plainText, "request")`, check: `mod.generateMacAsHex("042666B49184CFA368DE9628D0397BC9", "4012345678909D987", "request") === "9CCC78173FC4FB64"`},
+		{name: `generateMacAsHex(currentKey, plainText, "response")`, check: `mod.generateMacAsHex("042666B49184CFA368DE9628D0397BC9", "4012345678909D987", "response") === "20364223C1FF00FA"`},
 	}
 	for _, tt := range tests { //nolint:paralleltest
 		t.Run(tt.name, func(t *testing.T) {
