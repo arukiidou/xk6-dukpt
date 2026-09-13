@@ -7,7 +7,7 @@
 
 ## Requrements
 
-- k6 2.2.0+
+- k6 2.3.0+
 
 ## How to Build
 
@@ -23,7 +23,7 @@ xk6 build --k6-version latest --os linux --cgo 0 --with github.com/arukiidou/xk6
 
 ```typescript file=dukpt.ts
 import { check } from "k6";
-import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64 } from "k6/x/dukpt";
+import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64 } from "k6/x/dukpt/des";
 
 export const options = {
   thresholds: {
@@ -55,7 +55,7 @@ and return the **full 8 bytes** produced by moov-io. Per ANSI X9.24-1, the MAC i
 the **first 4 bytes** of that result, so truncate before sending it:
 
 ```typescript
-import { generateMacAsBase64 } from "k6/x/dukpt";
+import { generateMacAsBase64 } from "k6/x/dukpt/des";
 
 const mac = generateMacAsBase64(ck, "4012345678909D987", "request");
 // mac === "nMx4Fz/E+2Q="  (9CCC78173FC4FB64)
