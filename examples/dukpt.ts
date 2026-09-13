@@ -1,5 +1,5 @@
 import { check } from "k6";
-import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64, generateMacAsBase64 } from "k6/x/dukpt/des";
+import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64, generateMacAsHex } from "k6/x/dukpt/des";
 
 export const options = {
   thresholds: {
@@ -19,12 +19,12 @@ export default function () {
   const ck = deriveCurrentTransactionKeyAsBase64(ik, ksn)
 
   // generateMacAsBase64 returns 8 bytes; the ANSI X9.24-1 mac is the first 4.
-  const macExpected = "nMx4Fz/E+2Q="; //"9CCC78173FC4FB64";
-  const mac = generateMacAsBase64(ck, "4012345678909D987", "request")
+  const macExpected = "9CCC78173FC4FB64"; //"nMx4Fz/E+2Q=";
+  const mac = generateMacAsHex(Uint8Array.fromBase64(ck).toHex(), "4012345678909D987", "request")
 
   check(null, {
     'derivationOfInitialKeyAsBase64(bdk, ksn)': () => ik === ikExpected,
     'deriveCurrentTransactionKeyAsBase64(ik, ksn)': () => ck === ckExpected,
-    'generateMacAsBase64(ck, data, "request")': () => mac === macExpected,
+    'generateMacAsHex(ck, data, "request")': () => mac === macExpected,
   });
 }

@@ -36,7 +36,7 @@ const keyPair: CryptoKeyPair = await crypto.subtle.generateKey(
 
 /**
  * run this example with the following command:
- * `./k6 run --secret-source=file=(yourAbsolutePath)/examples/example.secrets.txt examples/dukpt_rsa.ts`
+ * `./k6 run --secret-source=file=$(pwd)/examples/example.secrets.txt examples/dukpt_rsa.ts`
 */
 async function test(){
   const ksn = Uint8Array.fromBase64("//+YdlQyEOAAAQ=="); //"FFFF9876543210E00001";
