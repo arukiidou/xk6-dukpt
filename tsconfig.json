@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["ES2020", "dom"],
+    "target": "esnext",
+    "lib": ["ESNext", "dom"],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "types": ["k6", "k6/x/dukpt"],
+    "types": ["k6", "k6/x/dukpt/des"],
     "typeRoots": ["./node_modules/@types", "./types"],
     "esModuleInterop": true,
     "strict": true,
