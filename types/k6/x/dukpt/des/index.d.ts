@@ -6,9 +6,9 @@
 /**
  * **k6 DUKPT extension porting with moov-io**
  *
- * @module "k6/x/dukpt"
+ * @module "k6/x/dukpt/des"
  */
-export as namespace dukpt;
+export as namespace des;
 
 /**
  * k6 API for [des.DerivationOfInitialKey] port from moov-io,
@@ -120,8 +120,8 @@ export declare function generateMacAsBase64(
  * @returns The derived initial key.
  */
 export declare function derivationOfInitialKey(
-  bdk: ArrayBuffer,
-  ksn: ArrayBuffer
+  bdk: ArrayBuffer | Uint8Array<ArrayBufferLike>,
+  ksn: ArrayBuffer | Uint8Array<ArrayBufferLike>
 ): ArrayBuffer;
 
 /**
@@ -132,8 +132,8 @@ export declare function derivationOfInitialKey(
  * @returns The derived transaction key.
  */
 export declare function deriveCurrentTransactionKey(
-  ik: ArrayBuffer,
-  ksn: ArrayBuffer
+  ik: ArrayBuffer | Uint8Array<ArrayBufferLike>,
+  ksn: ArrayBuffer | Uint8Array<ArrayBufferLike>,
 ): ArrayBuffer;
 
 /**

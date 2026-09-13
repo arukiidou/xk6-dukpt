@@ -1,5 +1,5 @@
-import base64 from "./dukptBase64.test.js"
-import dukpt from "./dukpt.test.js"
+import desBase64Test from "./desBase64.test.js"
+import desTest from "./des.test.js"
 
 export const options = {
   thresholds: {
@@ -8,6 +8,6 @@ export const options = {
 }
 
 export default function () {
-  base64()
-  dukpt()
+  desBase64Test()
+  desTest()
 }

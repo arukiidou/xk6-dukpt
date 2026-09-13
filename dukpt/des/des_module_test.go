@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 arukiidou <arukiidou@yahoo.co.jp>
 // SPDX-License-Identifier: Apache-2.0
 
-package xk6dukpt
+package des
 
 import (
 	_ "embed"
@@ -16,10 +16,10 @@ func Test_module(t *testing.T) { //nolint:tparallel
 
 	runtime := modulestest.NewRuntime(t)
 
-	err := runtime.SetupModuleSystem(map[string]any{importPath: new(rootModule)}, nil, nil)
+	err := runtime.SetupModuleSystem(map[string]any{ImportPath: new(DesModule)}, nil, nil)
 	require.NoError(t, err)
 
-	_, err = runtime.RunOnEventLoop(`let mod = require("` + importPath + `")`)
+	_, err = runtime.RunOnEventLoop(`let mod = require("` + ImportPath + `")`)
 	require.NoError(t, err)
 
 	tests := []struct {

@@ -3,5 +3,6 @@
 /xk6
 /xk6.exe
 /build
+/examples/example.secrets.txt
 coverage.txt
 node_modules

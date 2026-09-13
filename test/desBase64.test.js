@@ -1,5 +1,5 @@
 import { check } from "k6";
-import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64, encryptPinAsBase64, decryptPinAsBase64, encryptDataAsBase64, decryptDataAsBase64, generateMacAsBase64 } from "k6/x/dukpt";
+import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64, encryptPinAsBase64, decryptPinAsBase64, encryptDataAsBase64, decryptDataAsBase64, generateMacAsBase64 } from "k6/x/dukpt/des";
 
 export const options = {
   thresholds: {
