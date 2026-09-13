@@ -10,8 +10,8 @@ import (
 	"github.com/moov-io/dukpt/pkg/des"
 )
 
-// encodeHex returns uppercase hex, the notation used by DUKPT test vectors.
-func encodeHex(b []byte) string {
+// encodeUpperHex returns uppercase hex, the notation used by DUKPT test vectors.
+func encodeUpperHex(b []byte) string {
 	return strings.ToUpper(hex.EncodeToString(b))
 }
 
@@ -37,10 +37,10 @@ func DeriveCurrentTransactionKeyAsHex(ik, ksn string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return encodeHex(ck), nil
+	return encodeUpperHex(ck), nil
 }
 
-// [des.DerivationOfInitialKey] port from moov-io
+// [des.DerivationOfInitialKey] port from moov-io, as a Hex variant
 //
 // bdk hex string - 16 bytes base derivation key.
 // ksn hex string - 10 bytes key serial number.
@@ -62,10 +62,10 @@ func DerivationOfInitialKeyAsHex(bdk, ksn string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return encodeHex(rawIk), nil
+	return encodeUpperHex(rawIk), nil
 }
 
-// [des.EncryptPin] port from moov-io
+// [des.EncryptPin] port from moov-io, as a Hex variant
 //
 // currentKey hex string - 16 bytes transaction key.
 // pin is not formatted pin string.
@@ -86,10 +86,10 @@ func EncryptPinAsHex(currentKey, pin, pan, format string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return encodeHex(ciphertext), nil
+	return encodeUpperHex(ciphertext), nil
 }
 
-// [des.DecryptPin] port from moov-io
+// [des.DecryptPin] port from moov-io, as a Hex variant
 //
 // currentKey hex string - 16 bytes transaction key.
 // ciphertext hex string - encrypted pin block.
@@ -113,7 +113,7 @@ func DecryptPinAsHex(currentKey, ciphertext, pan, format string) (string, error)
 	return des.DecryptPin(rawCurrentKey, rawCiphertext, pan, format)
 }
 
-// [des.EncryptData] port from moov-io
+// [des.EncryptData] port from moov-io, as a Hex variant
 //
 // currentKey hex string - 16 bytes transaction key.
 // iv hex string - initial vector, empty for the default zero vector.
@@ -137,10 +137,10 @@ func EncryptDataAsHex(currentKey, iv, plainText, action string) (string, error) 
 	if err != nil {
 		return "", err
 	}
-	return encodeHex(ciphertext), nil
+	return encodeUpperHex(ciphertext), nil
 }
 
-// [des.DecryptData] port from moov-io
+// [des.DecryptData] port from moov-io, as a Hex variant
 //
 // currentKey hex string - 16 bytes transaction key.
 // ciphertext hex string - encrypted text.
@@ -167,7 +167,7 @@ func DecryptDataAsHex(currentKey, ciphertext, iv, action string) (string, error)
 	return des.DecryptData(rawCurrentKey, rawCiphertext, normalizeIV(rawIv), action)
 }
 
-// [des.GenerateMac] port from moov-io
+// [des.GenerateMac] port from moov-io, as a Hex variant
 //
 // currentKey hex string - 16 bytes transaction key.
 // plainText is transaction request data.
@@ -186,5 +186,5 @@ func GenerateMacAsHex(currentKey, plainText, action string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return encodeHex(mac), nil
+	return encodeUpperHex(mac), nil
 }

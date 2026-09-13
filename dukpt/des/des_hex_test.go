@@ -27,15 +27,15 @@ type SequenceHexItem struct {
 
 func newSequenceHexItem(seq SequenceItem) SequenceHexItem {
 	return SequenceHexItem{
-		Bdk:         encodeHex(seq.Bdk),
-		Ksn:         encodeHex(seq.Ksn),
-		InitialKey:  encodeHex(seq.InitialKey),
-		CurrentKey:  encodeHex(seq.CurrentKey),
-		PinEnc:      encodeHex(seq.PinEnc),
-		DataReqEnc:  encodeHex(seq.DataReqEnc),
-		DataResEnc:  encodeHex(seq.DataResEnc),
-		RequestMac:  encodeHex(seq.RequestMac),
-		ResponseMac: encodeHex(seq.ResponseMac),
+		Bdk:         encodeUpperHex(seq.Bdk),
+		Ksn:         encodeUpperHex(seq.Ksn),
+		InitialKey:  encodeUpperHex(seq.InitialKey),
+		CurrentKey:  encodeUpperHex(seq.CurrentKey),
+		PinEnc:      encodeUpperHex(seq.PinEnc),
+		DataReqEnc:  encodeUpperHex(seq.DataReqEnc),
+		DataResEnc:  encodeUpperHex(seq.DataResEnc),
+		RequestMac:  encodeUpperHex(seq.RequestMac),
+		ResponseMac: encodeUpperHex(seq.ResponseMac),
 	}
 }
 
@@ -51,21 +51,21 @@ func TestHexMoovCompatibility(t *testing.T) {
 			require.NoError(t, err)
 			desIk, err := des.DerivationOfInitialKey(moov.Bdk, moov.Ksn)
 			require.NoError(t, err)
-			require.Equal(t, ik, encodeHex(desIk))
+			require.Equal(t, ik, encodeUpperHex(desIk))
 			require.Equal(t, hx.InitialKey, ik)
 
 			ck, err := DeriveCurrentTransactionKeyAsHex(ik, hx.Ksn)
 			require.NoError(t, err)
 			desCk, err := des.DeriveCurrentTransactionKey(desIk, moov.Ksn)
 			require.NoError(t, err)
-			require.Equal(t, ck, encodeHex(desCk))
+			require.Equal(t, ck, encodeUpperHex(desCk))
 			require.Equal(t, hx.CurrentKey, ck)
 
 			pinEnc, err := EncryptPinAsHex(ck, pin, pan, formatVersion)
 			require.NoError(t, err)
 			desPinEnc, err := des.EncryptPin(desCk, pin, pan, formatVersion)
 			require.NoError(t, err)
-			require.Equal(t, pinEnc, encodeHex(desPinEnc))
+			require.Equal(t, pinEnc, encodeUpperHex(desPinEnc))
 			require.Equal(t, hx.PinEnc, pinEnc)
 
 			decPin, err := DecryptPinAsHex(ck, pinEnc, pan, formatVersion)
