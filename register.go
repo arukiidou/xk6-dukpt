@@ -5,10 +5,12 @@
 package xk6dukpt
 
 import (
+	"github.com/arukiidou/xk6-dukpt/dukpt"
 	"github.com/arukiidou/xk6-dukpt/dukpt/des"
 	"go.k6.io/k6/v2/js/modules"
 )
 
 func init() {
+	modules.Register(dukpt.ImportPath, new(dukpt.RootModule))
 	modules.Register(des.ImportPath, new(des.DesModule))
 }

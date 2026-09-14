@@ -50,7 +50,6 @@ export declare function deriveCurrentTransactionKey(
   ik: ArrayBuffer | Uint8Array<ArrayBufferLike>,
   ksn: ArrayBuffer | Uint8Array<ArrayBufferLike>,
 ): ArrayBuffer;
-
 /**
  * k6 API for [des.EncryptPin] port from moov-io,
  * encrypts a PIN block using the DUKPT transaction key.

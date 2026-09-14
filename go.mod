@@ -3,7 +3,7 @@ module github.com/arukiidou/xk6-dukpt
 go 1.26.3
 
 require (
-	github.com/moov-io/dukpt v0.0.0-20260902190304-0215fcb7ec54
+	github.com/moov-io/dukpt v0.0.0-20260910041243-ed623c1c0190
 	github.com/stretchr/testify v1.12.1
 	go.k6.io/k6/v2 v2.2.1-0.20260911143016-8d0611477719 // k6 2.3.0+ for using uint8array-base64
 )
@@ -67,7 +67,7 @@ require (
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/montanaflynn/stats v0.6.6 // indirect
-	github.com/moov-io/pinblock v0.0.0-20260902182738-cf41c1d221c7 // indirect
+	github.com/moov-io/pinblock v0.0.0-20260910034815-d8495367d51e // indirect
 	github.com/mstoykov/atlas v0.0.0-20220811071828-388f114305dd // indirect
 	github.com/openai/openai-go/v3 v3.52.0 // indirect
 	github.com/pb33f/ordered-map/v2 v2.3.1 // indirect
