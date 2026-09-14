@@ -28,7 +28,6 @@ export declare function deriveCurrentTransactionKeyAsHex(
   ik: string,
   ksn: string
 ): string;
-
 /**
  * k6 API for [des.EncryptPin] port from moov-io,
  * encrypts a PIN block using the DUKPT transaction key.

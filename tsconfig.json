@@ -4,7 +4,7 @@
     "lib": ["ESNext", "dom"],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "types": ["k6", "k6/x/dukpt/des"],
+    "types": ["k6", "k6/x/dukpt", "k6/x/dukpt/des"],
     "typeRoots": ["./node_modules/@types", "./types"],
     "esModuleInterop": true,
     "strict": true,
