@@ -40,3 +40,42 @@ func TestGetDesTcFromKsn(t *testing.T) {
 	require.Equal(t, uint32(0), GetDesTcFromKsn([]byte{0x01, 0x02, 0x03}))
 	require.Equal(t, uint32(0), GetDesTcFromKsn(nil))
 }
+
+func TestGenerateNextDesKsn(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		ksn  string
+		next string
+	}{
+		{ksn: "FFFF9876543210E00001", next: "FFFF9876543210E00002"},
+		{ksn: "FFFF9876543210E00004", next: "FFFF9876543210E00005"},
+		// Counters with more than 10 bits set are skipped.
+		{ksn: "FFFF9876543210E003FF", next: "FFFF9876543210E00400"},
+		{ksn: "FFFF9876543210EFFC00", next: "FFFF9876543210F00000"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.ksn, func(t *testing.T) {
+			rawKsn := pkg.HexDecode(tt.ksn)
+
+			next, err := GenerateNextDesKsn(rawKsn)
+			require.NoError(t, err)
+			require.Equal(t, pkg.HexDecode(tt.next), next)
+			require.Equal(t, pkg.HexDecode(tt.ksn), rawKsn, "input must not be modified")
+
+			desNext, err := pkg.GenerateNextDesKsn(pkg.HexDecode(tt.ksn))
+			require.NoError(t, err)
+			require.Equal(t, desNext, next)
+		})
+	}
+
+	// Counter exhausted.
+	_, err := GenerateNextDesKsn(pkg.HexDecode("FFFF9876543210FFF800"))
+	require.Error(t, err)
+
+	// Short KSN errors instead of panicking.
+	_, err = GenerateNextDesKsn([]byte{0x01, 0x02})
+	require.Error(t, err)
+	_, err = GenerateNextDesKsn(nil)
+	require.Error(t, err)
+}

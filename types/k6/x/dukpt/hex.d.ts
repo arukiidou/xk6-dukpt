@@ -11,3 +11,11 @@
  * @returns The 21 bit transaction counter.
  */
 export declare function getDesTcFromKsnAsHex(ksn: string): number;
+
+/**
+ * k6 API for [pkg.GenerateNextDesKsn] port from moov-io,
+ * generates the next key serial number as a hex encoded string.
+ * @param ksn The key serial number as a hex string (case-insensitive).
+ * @returns The next key serial number as an uppercase hex string.
+ */
+export declare function generateNextDesKsnAsHex(ksn: string): string;

@@ -29,3 +29,22 @@ func TestBase64GetDesTcFromKsn(t *testing.T) {
 	_, err := GetDesTcFromKsnAsBase64("!!!")
 	require.Error(t, err)
 }
+
+func TestBase64GenerateNextDesKsn(t *testing.T) {
+	t.Parallel()
+
+	for index, ksn := range moovInitialKsns[:len(moovInitialKsns)-1] {
+		t.Run(fmt.Sprintf("Sequence #%d KSN: %s", index+1, ksn), func(t *testing.T) {
+			next, err := GenerateNextDesKsnAsBase64(base64.StdEncoding.EncodeToString(pkg.HexDecode(ksn)))
+			require.NoError(t, err)
+			require.Equal(t, base64.StdEncoding.EncodeToString(pkg.HexDecode(moovInitialKsns[index+1])), next)
+		})
+	}
+
+	_, err := GenerateNextDesKsnAsBase64("!!!")
+	require.Error(t, err)
+
+	// Counter exhausted.
+	_, err = GenerateNextDesKsnAsBase64(base64.StdEncoding.EncodeToString(pkg.HexDecode("FFFF9876543210FFF800")))
+	require.Error(t, err)
+}

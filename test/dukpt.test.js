@@ -1,5 +1,5 @@
 import { check } from "k6";
-import { getDesTcFromKsn } from "k6/x/dukpt";
+import { getDesTcFromKsn, generateNextDesKsn } from "k6/x/dukpt";
 
 export const options = {
   thresholds: {
@@ -12,5 +12,14 @@ export default function () {
 
   check(null, {
     'getDesTcFromKsn(ksn)': () => getDesTcFromKsn(ksn) === 1,
+  });
+
+  const nextKsnExpected = "//+YdlQyEOAAAg=="; //"FFFF9876543210E00002";
+
+  const nextKsn = generateNextDesKsn(ksn);
+
+  check(null, {
+    'generateNextDesKsn(ksn)': () => new Uint8Array(nextKsn).toBase64() === nextKsnExpected,
+    'generateNextDesKsn(ksn) keeps ksn': () => ksn.toBase64() === "//+YdlQyEOAAAQ==",
   });
 }

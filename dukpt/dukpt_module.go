@@ -24,13 +24,16 @@ type module struct {
 
 func (m *module) Exports() modules.Exports {
 	base := map[string]any{
-		"getDesTcFromKsn": GetDesTcFromKsn,
+		"getDesTcFromKsn":    GetDesTcFromKsn,
+		"generateNextDesKsn": GenerateNextDesKsn,
 	}
 	base64 := map[string]any{
-		"getDesTcFromKsnAsBase64": GetDesTcFromKsnAsBase64,
+		"getDesTcFromKsnAsBase64":    GetDesTcFromKsnAsBase64,
+		"generateNextDesKsnAsBase64": GenerateNextDesKsnAsBase64,
 	}
 	hexs := map[string]any{
-		"getDesTcFromKsnAsHex": GetDesTcFromKsnAsHex,
+		"getDesTcFromKsnAsHex":    GetDesTcFromKsnAsHex,
+		"generateNextDesKsnAsHex": GenerateNextDesKsnAsHex,
 	}
 	maps.Copy(base, base64)
 	maps.Copy(base, hexs)

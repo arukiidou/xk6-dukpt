@@ -11,3 +11,11 @@
  * @returns The 21 bit transaction counter.
  */
 export declare function getDesTcFromKsnAsBase64(ksn: string): number;
+
+/**
+ * k6 API for [pkg.GenerateNextDesKsn] port from moov-io,
+ * generates the next key serial number as a base64 encoded string.
+ * @param ksn The key serial number as a base64 string.
+ * @returns The next key serial number as a base64 string.
+ */
+export declare function generateNextDesKsnAsBase64(ksn: string): string;

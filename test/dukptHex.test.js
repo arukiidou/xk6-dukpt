@@ -1,5 +1,5 @@
 import { check } from "k6";
-import { getDesTcFromKsnAsHex } from "k6/x/dukpt";
+import { getDesTcFromKsnAsHex, generateNextDesKsnAsHex } from "k6/x/dukpt";
 
 export const options = {
   thresholds: {
@@ -12,5 +12,6 @@ export default function () {
 
   check(null, {
     'getDesTcFromKsnAsHex(ksn)': () => getDesTcFromKsnAsHex(ksn) === 1,
+    'generateNextDesKsnAsHex(ksn)': () => generateNextDesKsnAsHex(ksn) === "FFFF9876543210E00002",
   });
 }

@@ -5,9 +5,15 @@ package dukpt
 
 import (
 	"encoding/hex"
+	"strings"
 
 	"github.com/moov-io/dukpt/pkg"
 )
+
+// encodeUpperHex returns uppercase hex, the notation used by DUKPT test vectors.
+func encodeUpperHex(b []byte) string {
+	return strings.ToUpper(hex.EncodeToString(b))
+}
 
 // [pkg.GetDesTcFromKsn] port from moov-io, as a Hex variant
 //
@@ -24,4 +30,24 @@ func GetDesTcFromKsnAsHex(ksn string) (uint32, error) {
 		return 0, err
 	}
 	return pkg.GetDesTcFromKsn(rawKsn), nil
+}
+
+// [pkg.GenerateNextDesKsn] port from moov-io, as a Hex variant
+//
+// ksn hex string - 10 bytes key serial number.
+//
+// Return Params:
+//   - result is uppercase hex string - 10 bytes next key serial number
+//   - err
+func GenerateNextDesKsnAsHex(ksn string) (string, error) {
+	rawKsn, err := hex.DecodeString(ksn)
+	if err != nil {
+		return "", err
+	}
+
+	next, err := GenerateNextDesKsn(rawKsn)
+	if err != nil {
+		return "", err
+	}
+	return encodeUpperHex(next), nil
 }

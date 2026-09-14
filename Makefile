@@ -64,7 +64,7 @@ it:
 lint: 
 	@(\
 		golangci-lint run ./...;\
-		go run go.k6.io/xk6 lint;\
+		go tool go.k6.io/xk6 lint;\
 	)
 
 # Generate the Makefile
@@ -85,8 +85,8 @@ readme:
 .PHONY: security
 security: 
 	@(\
-		go run github.com/securego/gosec/v2/cmd/gosec -quiet ./...;\
-		go run golang.org/x/vuln/cmd/govulncheck ./...;\
+		gosec -quiet ./...;\
+		govulncheck ./...;\
 	)
 
 # Run the tests

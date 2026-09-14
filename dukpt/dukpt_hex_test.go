@@ -41,4 +41,28 @@ func TestHexInvalidInput(t *testing.T) {
 
 	_, err = GetDesTcFromKsnAsHex("ABC")
 	require.Error(t, err)
+
+	_, err = GenerateNextDesKsnAsHex("ZZ")
+	require.Error(t, err)
+}
+
+func TestHexGenerateNextDesKsn(t *testing.T) {
+	t.Parallel()
+
+	for index, ksn := range moovInitialKsns[:len(moovInitialKsns)-1] {
+		t.Run(fmt.Sprintf("Sequence #%d KSN: %s", index+1, ksn), func(t *testing.T) {
+			next, err := GenerateNextDesKsnAsHex(ksn)
+			require.NoError(t, err)
+			require.Equal(t, moovInitialKsns[index+1], next)
+		})
+	}
+
+	// Lowercase input, uppercase output.
+	next, err := GenerateNextDesKsnAsHex(strings.ToLower(moovInitialKsns[0]))
+	require.NoError(t, err)
+	require.Equal(t, moovInitialKsns[1], next)
+
+	// Counter exhausted.
+	_, err = GenerateNextDesKsnAsHex("FFFF9876543210FFF800")
+	require.Error(t, err)
 }

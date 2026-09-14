@@ -13,3 +13,14 @@
 export declare function getDesTcFromKsn(
   ksn: ArrayBuffer | Uint8Array<ArrayBufferLike>
 ): number;
+
+/**
+ * k6 API for [pkg.GenerateNextDesKsn] port from moov-io,
+ * generates the next key serial number.
+ * The input is not modified.
+ * @param ksn The key serial number.
+ * @returns The next key serial number.
+ */
+export declare function generateNextDesKsn(
+  ksn: ArrayBuffer | Uint8Array<ArrayBufferLike>
+): ArrayBuffer;
