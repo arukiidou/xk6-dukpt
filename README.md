@@ -1,10 +1,12 @@
 # xk6-dukpt
 
-- [k6](https://github.com/grafana/k6) DUKPT [extension](https://github.com/grafana/xk6) port from [moov-io](https://pkg.go.dev/github.com/moov-io/dukpt)
-
 [![Go Reference](https://pkg.go.dev/badge/github.com/arukiidou/xk6-dukpt.svg)](https://pkg.go.dev/github.com/arukiidou/xk6-dukpt)
 
+- xk6-dukpt is a [k6](https://github.com/grafana/k6) [extension](https://github.com/grafana/xk6) for DUKPT(Derived Unique Key Per Transaction) cryptography operations. port from [moov-io](https://pkg.go.dev/github.com/moov-io/dukpt)
+
 # Important
+
+As with moov-io/dukpt, this extention is mostly for validation and debugging purposes.
 
 > [!CAUTION]
 > Use this extension with great care.
@@ -12,6 +14,7 @@
 > Create keys dedicated to k6 testing, or use well-known test keys (e.g. the ANSI X9.24 test BDK `0123456789ABCDEFFEDCBA9876543210`).
 > 
 > - Wherever possible, follow these best practices:
+>   - Avoid using the BDK directly. Wherever possible, derive keys only from the IPEK.
 >   - Protect keys with [`crypto`(WebCrypto)](https://grafana.com/docs/k6/latest/javascript-api/crypto/).
 >   - Do not hardcode key protection keys; load them with [`k6/secrets`](https://grafana.com/docs/k6/latest/using-k6/secret-source/).
 >   - Never write keys to logs.
@@ -36,7 +39,7 @@ go install go.k6.io/xk6@latest
 xk6 build --k6-version latest --os linux --cgo 0 --with github.com/arukiidou/xk6-dukpt@latest
 # or
 # go get -tool go.k6.io/xk6@latest
-# go run go.k6.io/xk6 build --k6-version latest --os linux --cgo 0 --with github.com/arukiidou/xk6-dukpt@latest
+# go tool xk6 build --k6-version latest --os linux --cgo 0 --with github.com/arukiidou/xk6-dukpt@latest
 ```
 
 # Example script
@@ -58,12 +61,14 @@ export default async function () {
 async function example(bdk: string, ksn: string) {
   // bdk and ksn are hex strings: convert with Uint8Array.fromHex() before the call,
   // and convert the ArrayBuffer result back with toHex() right after it.
-  const bdk = Uint8Array.fromHex("...");
-  const ksn = Uint8Array.fromHex("...");
-  const ik = new Uint8Array(derivationOfInitialKey(bdk, ksn))
+  const ckExpected = "BCZmtJGEz6No3pYo0Dl7yQ=="; //"042666B49184CFA368DE9628D0397BF9";
+
+  const ik = Uint8Array.fromHex("...");
+  const ksn = Uint8Array.fromHex("FFFF9876543210E00001");
+  const ck = deriveCurrentTransactionKey(ik, ksn)
 
   check(null, {
-    'derivationOfInitialKey(bdk, ksn)': () => ik.toHex() === bdk.toHex()
+    'deriveCurrentTransactionKeyAsBase64(ik, ksn)': () => ck.toHex() === ckExpected.toHex(),
   });
 }
 
@@ -93,8 +98,8 @@ Inputs and outputs are standard base64 strings with padding (RFC 4648), so value
 ```typescript
 import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64, generateMacAsBase64 } from "k6/x/dukpt/des";
 
-const ik = derivationOfInitialKeyAsBase64("ASNFZ4mrze/+3LqYdlQyEA==", "//+YdlQyEOAAAQ==");
-const ck = deriveCurrentTransactionKeyAsBase64(ik, "//+YdlQyEOAAAQ==");
+const ik = "...";
+const ck = deriveCurrentTransactionKeyAsBase64("...", "//+YdlQyEOAAAQ==");
 // ck === "BCZmtJGEz6No3pYo0Dl7yQ=="
 
 const mac = generateMacAsBase64(ck, "4012345678909D987", "request");
@@ -111,7 +116,7 @@ Inputs are case-insensitive hex strings; outputs are **uppercase** hex, so test 
 ```typescript
 import { derivationOfInitialKeyAsHex, deriveCurrentTransactionKeyAsHex, generateMacAsHex } from "k6/x/dukpt/des";
 
-const ik = derivationOfInitialKeyAsHex("0123456789ABCDEFFEDCBA9876543210", "FFFF9876543210E00001");
+const ik = "...";
 const ck = deriveCurrentTransactionKeyAsHex(ik, "FFFF9876543210E00001");
 // ck === "042666B49184CFA368DE9628D0397BC9"
 
