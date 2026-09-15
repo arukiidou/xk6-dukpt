@@ -102,6 +102,7 @@ require (
 tool go.k6.io/xk6
 
 retract (
+	v0.7.0
 	v0.6.0
 	v0.5.0
 	v0.4.0
