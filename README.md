@@ -68,7 +68,7 @@ async function example(bdk: string, ksn: string) {
   const ck = deriveCurrentTransactionKey(ik, ksn)
 
   check(null, {
-    'deriveCurrentTransactionKeyAsBase64(ik, ksn)': () => ck.toHex() === ckExpected.toHex(),
+    'deriveCurrentTransactionKey(ik, ksn)': () => ck.toHex() === ckExpected.toHex(),
   });
 }
 
