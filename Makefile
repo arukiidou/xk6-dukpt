@@ -28,7 +28,7 @@ all: clean format lint security test build it doc readme makefile
 .PHONY: build
 build: 
 	@(\
-		go run go.k6.io/xk6 build --with github.com/arukiidou/xk6-dukpt=.;\
+		go tool xk6 build --with github.com/arukiidou/xk6-dukpt=.;\
 	)
 
 # Clean the working directory
@@ -64,7 +64,7 @@ it:
 lint: 
 	@(\
 		golangci-lint run ./...;\
-		go tool go.k6.io/xk6 lint;\
+		go tool xk6 lint;\
 	)
 
 # Generate the Makefile
