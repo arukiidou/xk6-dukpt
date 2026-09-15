@@ -17,7 +17,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chainguard-dev/git-urls v1.0.2 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
-	github.com/ctrf-io/go-ctrf-json-reporter v0.1.0 // indirect
+	github.com/ctrf-io/go-ctrf-json-reporter v0.2.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/dgryski/go-minhash v0.0.0-20190315135803-ad340ca03076 // indirect
 	github.com/dlclark/regexp2/v2 v2.7.2 // indirect
@@ -38,7 +38,7 @@ require (
 	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/goreleaser/fileglob v1.4.0 // indirect
-	github.com/grafana/k6foundry v0.5.2 // indirect
+	github.com/grafana/k6foundry v0.5.3 // indirect
 	github.com/grafana/sobek v0.0.0-20260908083152-4698bc773ae7 // indirect
 	github.com/grafana/sobek-webapi-encoding v0.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
@@ -70,7 +70,7 @@ require (
 	github.com/szkiba/efa v0.1.1 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	go.k6.io/xk6 v1.4.12 // indirect
+	go.k6.io/xk6 v1.4.13 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.46.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.46.0 // indirect
