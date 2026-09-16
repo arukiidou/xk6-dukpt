@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "lib": ["ESNext", "dom"],
+    "target": "esnext", // recommend to use ES2026 features: uint8array-base64.
+    "lib": ["ESNext", "dom"], // use dom lib for WebCrypto.
     "module": "ESNext",
     "moduleResolution": "bundler",
     "types": ["k6", "k6/x/dukpt", "k6/x/dukpt/des"],

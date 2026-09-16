@@ -7,10 +7,30 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/grafana/sobek"
 	"github.com/moov-io/dukpt/pkg"
 	"github.com/moov-io/dukpt/pkg/des"
 	"github.com/stretchr/testify/require"
+	"go.k6.io/k6/v2/js/modulestest"
 )
+
+// newTestModule returns a module backed by a test runtime, plus an unwrap
+// helper that flattens its ArrayBuffer results into raw bytes.
+func newTestModule(t *testing.T) (*module, func(*sobek.ArrayBuffer, error) []byte) {
+	t.Helper()
+
+	instance, ok := new(DesModule).NewModuleInstance(modulestest.NewRuntime(t).VU).(*module)
+	require.True(t, ok)
+
+	unwrap := func(ab *sobek.ArrayBuffer, err error) []byte {
+		t.Helper()
+
+		require.NoError(t, err)
+		require.NotNil(t, ab)
+		return ab.Bytes()
+	}
+	return instance, unwrap
+}
 
 // A.4.2 Initial Sequence test values from moov-io/dukpt.
 const (
@@ -101,23 +121,21 @@ func TestMoovCompatibility(t *testing.T) {
 
 	for index, moov := range moovInitialSequence {
 		t.Run(fmt.Sprintf("Sequence #%d KSN: %s", index+1, pkg.HexEncode(moov.Ksn)), func(t *testing.T) {
+			m, unwrap := newTestModule(t)
 
-			ik, err := DerivationOfInitialKey(moov.Bdk, moov.Ksn)
-			require.NoError(t, err)
+			ik := unwrap(m.DerivationOfInitialKey(moov.Bdk, moov.Ksn))
 			desIk, err := des.DerivationOfInitialKey(moov.Bdk, moov.Ksn)
 			require.NoError(t, err)
 			require.Equal(t, ik, desIk)
 			require.Equal(t, moov.InitialKey, ik)
 
-			ck, err := DeriveCurrentTransactionKey(ik, moov.Ksn)
-			require.NoError(t, err)
+			ck := unwrap(m.DeriveCurrentTransactionKey(ik, moov.Ksn))
 			desCk, err := des.DeriveCurrentTransactionKey(desIk, moov.Ksn)
 			require.NoError(t, err)
 			require.Equal(t, ck, desCk)
 			require.Equal(t, moov.CurrentKey, ck)
 
-			pinEnc, err := EncryptPin(ck, pin, pan, formatVersion)
-			require.NoError(t, err)
+			pinEnc := unwrap(m.EncryptPin(ck, pin, pan, formatVersion))
 			desPinEnc, err := des.EncryptPin(desCk, pin, pan, formatVersion)
 			require.NoError(t, err)
 			require.Equal(t, pinEnc, desPinEnc)
@@ -127,16 +145,14 @@ func TestMoovCompatibility(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, pin, decPin)
 
-			reqEnc, err := EncryptData(ck, nil, data, pkg.ActionRequest)
-			require.NoError(t, err)
+			reqEnc := unwrap(m.EncryptData(ck, nil, data, pkg.ActionRequest))
 			require.Equal(t, moov.DataReqEnc, reqEnc)
 
 			decReq, err := DecryptData(ck, reqEnc, nil, pkg.ActionRequest)
 			require.NoError(t, err)
 			require.Equal(t, data, decReq[:len(data)])
 
-			resEnc, err := EncryptData(ck, nil, data, pkg.ActionResponse)
-			require.NoError(t, err)
+			resEnc := unwrap(m.EncryptData(ck, nil, data, pkg.ActionResponse))
 			require.Equal(t, moov.DataResEnc, resEnc)
 
 			decRes, err := DecryptData(ck, resEnc, nil, pkg.ActionResponse)
@@ -148,19 +164,61 @@ func TestMoovCompatibility(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, decReq, decEmptyIV)
 
-			reqMac, err := GenerateMac(ck, data, pkg.ActionRequest)
-			require.NoError(t, err)
+			reqMac := unwrap(m.GenerateMac(ck, data, pkg.ActionRequest))
 			desReqMac, err := des.GenerateMac(desCk, data, pkg.ActionRequest)
 			require.NoError(t, err)
 			require.Equal(t, reqMac, desReqMac)
 			require.Equal(t, moov.RequestMac, reqMac)
 
-			resMac, err := GenerateMac(ck, data, pkg.ActionResponse)
-			require.NoError(t, err)
+			resMac := unwrap(m.GenerateMac(ck, data, pkg.ActionResponse))
 			desResMac, err := des.GenerateMac(desCk, data, pkg.ActionResponse)
 			require.NoError(t, err)
 			require.Equal(t, resMac, desResMac)
 			require.Equal(t, moov.ResponseMac, resMac)
+		})
+	}
+}
+
+// An IV that is not one block panics in moov-io, so both sides must reject it.
+// A missing one still has to fall back to the zero vector.
+func TestIVLength(t *testing.T) {
+	t.Parallel()
+
+	currentKey := pkg.HexDecode("042666B49184CFA368DE9628D0397BC9")
+	zeroBlock := pkg.HexDecode("0000000000000000")
+
+	tests := []struct {
+		name string
+		iv   []byte
+		// block is the one-block IV that iv has to behave like, nil when iv is rejected.
+		block []byte
+	}{
+		{name: "nil", iv: nil, block: zeroBlock},
+		{name: "empty", iv: []byte{}, block: zeroBlock},
+		{name: "exact", iv: pkg.HexDecode("0102030405060708"), block: pkg.HexDecode("0102030405060708")},
+		{name: "short", iv: pkg.HexDecode("0102")},
+		{name: "long", iv: pkg.HexDecode("0102030405060708090A")},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m, unwrap := newTestModule(t)
+
+			if tt.block == nil {
+				_, err := m.EncryptData(currentKey, tt.iv, data, pkg.ActionRequest)
+				require.ErrorContains(t, err, fmt.Sprintf("iv must be 8 bytes, got %d", len(tt.iv)))
+
+				_, err = DecryptData(currentKey, nil, tt.iv, pkg.ActionRequest)
+				require.ErrorContains(t, err, fmt.Sprintf("iv must be 8 bytes, got %d", len(tt.iv)))
+				return
+			}
+
+			ciphertext := unwrap(m.EncryptData(currentKey, tt.iv, data, pkg.ActionRequest))
+			require.Equal(t, unwrap(m.EncryptData(currentKey, tt.block, data, pkg.ActionRequest)), ciphertext)
+
+			plaintext, err := DecryptData(currentKey, ciphertext, tt.iv, pkg.ActionRequest)
+			require.NoError(t, err)
+			require.Equal(t, data, plaintext[:len(data)])
 		})
 	}
 }

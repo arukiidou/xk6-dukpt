@@ -21,5 +21,6 @@ export default function () {
   check(null, {
     'generateNextDesKsn(ksn)': () => new Uint8Array(nextKsn).toBase64() === nextKsnExpected,
     'generateNextDesKsn(ksn) keeps ksn': () => ksn.toBase64() === "//+YdlQyEOAAAQ==",
+    'generateNextDesKsn(ksn) returns an ArrayBuffer': () => nextKsn instanceof ArrayBuffer,
   });
 }

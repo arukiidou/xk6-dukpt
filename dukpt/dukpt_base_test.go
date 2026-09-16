@@ -7,9 +7,29 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/grafana/sobek"
 	"github.com/moov-io/dukpt/pkg"
 	"github.com/stretchr/testify/require"
+	"go.k6.io/k6/v2/js/modulestest"
 )
+
+// newTestModule returns a module backed by a test runtime, plus an unwrap
+// helper that flattens its ArrayBuffer results into raw bytes.
+func newTestModule(t *testing.T) (*module, func(*sobek.ArrayBuffer, error) []byte) {
+	t.Helper()
+
+	instance, ok := new(RootModule).NewModuleInstance(modulestest.NewRuntime(t).VU).(*module)
+	require.True(t, ok)
+
+	unwrap := func(ab *sobek.ArrayBuffer, err error) []byte {
+		t.Helper()
+
+		require.NoError(t, err)
+		require.NotNil(t, ab)
+		return ab.Bytes()
+	}
+	return instance, unwrap
+}
 
 // A.4.2 Initial Sequence KSNs from moov-io/dukpt.
 var moovInitialKsns = []string{
@@ -56,10 +76,10 @@ func TestGenerateNextDesKsn(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.ksn, func(t *testing.T) {
+			m, unwrap := newTestModule(t)
 			rawKsn := pkg.HexDecode(tt.ksn)
 
-			next, err := GenerateNextDesKsn(rawKsn)
-			require.NoError(t, err)
+			next := unwrap(m.GenerateNextDesKsn(rawKsn))
 			require.Equal(t, pkg.HexDecode(tt.next), next)
 			require.Equal(t, pkg.HexDecode(tt.ksn), rawKsn, "input must not be modified")
 
@@ -69,13 +89,15 @@ func TestGenerateNextDesKsn(t *testing.T) {
 		})
 	}
 
+	m, _ := newTestModule(t)
+
 	// Counter exhausted.
-	_, err := GenerateNextDesKsn(pkg.HexDecode("FFFF9876543210FFF800"))
+	_, err := m.GenerateNextDesKsn(pkg.HexDecode("FFFF9876543210FFF800"))
 	require.Error(t, err)
 
 	// Short KSN errors instead of panicking.
-	_, err = GenerateNextDesKsn([]byte{0x01, 0x02})
+	_, err = m.GenerateNextDesKsn([]byte{0x01, 0x02})
 	require.Error(t, err)
-	_, err = GenerateNextDesKsn(nil)
+	_, err = m.GenerateNextDesKsn(nil)
 	require.Error(t, err)
 }

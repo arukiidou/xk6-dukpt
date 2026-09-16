@@ -45,7 +45,7 @@ func GenerateNextDesKsnAsHex(ksn string) (string, error) {
 		return "", err
 	}
 
-	next, err := GenerateNextDesKsn(rawKsn)
+	next, err := generateNextDesKsn(rawKsn)
 	if err != nil {
 		return "", err
 	}

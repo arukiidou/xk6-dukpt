@@ -24,13 +24,13 @@ type module struct {
 
 func (m *module) Exports() modules.Exports {
 	base := map[string]any{
-		"derivationOfInitialKey":      DerivationOfInitialKey,
-		"deriveCurrentTransactionKey": DeriveCurrentTransactionKey,
-		"encryptPin":                  EncryptPin,
+		"derivationOfInitialKey":      m.DerivationOfInitialKey,
+		"deriveCurrentTransactionKey": m.DeriveCurrentTransactionKey,
+		"encryptPin":                  m.EncryptPin,
 		"decryptPin":                  DecryptPin,
-		"encryptData":                 EncryptData,
+		"encryptData":                 m.EncryptData,
 		"decryptData":                 DecryptData,
-		"generateMac":                 GenerateMac,
+		"generateMac":                 m.GenerateMac,
 	}
 	base64 := map[string]any{
 		"derivationOfInitialKeyAsBase64":      DerivationOfInitialKeyAsBase64,
