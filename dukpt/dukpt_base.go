@@ -6,8 +6,15 @@ package dukpt
 import (
 	"errors"
 
+	"github.com/grafana/sobek"
 	"github.com/moov-io/dukpt/pkg"
 )
+
+// newArrayBuffer hands raw bytes back as JS ArrayBuffer.
+func (m *module) newArrayBuffer(b []byte) *sobek.ArrayBuffer {
+	ab := m.vu.Runtime().NewArrayBuffer(b)
+	return &ab
+}
 
 // [pkg.GetDesTcFromKsn] port from moov-io
 //
@@ -28,11 +35,20 @@ func GetDesTcFromKsn(ksn []byte) uint32 {
 //   - ksn[ArrayBuffer] is 10 bytes key serial number
 //
 // Return Params:
-//   - result - 10 bytes next key serial number
+//   - result[ArrayBuffer] - 10 bytes next key serial number
 //   - err
 //
 // The input is not modified.
-func GenerateNextDesKsn(ksn []byte) ([]byte, error) {
+func (m *module) GenerateNextDesKsn(ksn []byte) (*sobek.ArrayBuffer, error) {
+	next, err := generateNextDesKsn(ksn)
+	if err != nil {
+		return nil, err
+	}
+	return m.newArrayBuffer(next), nil
+}
+
+// generateNextDesKsn is the raw form the hex and base64 variants encode.
+func generateNextDesKsn(ksn []byte) ([]byte, error) {
 	// moov-io panics below 3 bytes.
 	if len(ksn) < 3 {
 		return nil, errors.New("ksn must be at least 3 bytes")

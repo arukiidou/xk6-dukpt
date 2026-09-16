@@ -60,7 +60,7 @@ export declare function deriveCurrentTransactionKey(
  * @returns The cipher text.
  */
 export declare function encryptPin(
-  currentKey: ArrayBuffer,
+  currentKey: ArrayBuffer | Uint8Array<ArrayBufferLike>,
   pin: string,
   pan: string,
   format: PinBlockFormat
@@ -76,8 +76,8 @@ export declare function encryptPin(
  * @returns The pin string.
  */
 export declare function decryptPin(
-  currentKey: ArrayBuffer,
-  ciphertext: ArrayBuffer,
+  currentKey: ArrayBuffer | Uint8Array<ArrayBufferLike>,
+  ciphertext: ArrayBuffer | Uint8Array<ArrayBufferLike>,
   pan: string,
   format: PinBlockFormat
 ): string;
@@ -92,7 +92,7 @@ export declare function decryptPin(
  * @returns The encrypted data, zero padded to a multiple of 8 bytes.
  */
 export declare function encryptData(
-  currentKey: ArrayBuffer,
+  currentKey: ArrayBuffer | Uint8Array<ArrayBufferLike>,
   iv: ArrayBuffer | null,
   plainText: string,
   action: DukptAction
@@ -108,8 +108,8 @@ export declare function encryptData(
  * @returns The transaction request data, zero padded to a multiple of 8 bytes.
  */
 export declare function decryptData(
-  currentKey: ArrayBuffer,
-  ciphertext: ArrayBuffer,
+  currentKey: ArrayBuffer | Uint8Array<ArrayBufferLike>,
+  ciphertext: ArrayBuffer | Uint8Array<ArrayBufferLike>,
   iv: ArrayBuffer | null,
   action: DukptAction
 ): string;
@@ -123,7 +123,7 @@ export declare function decryptData(
  * @returns The 8 byte mac. Use the first 4 bytes as the ANSI X9.24-1 mac.
  */
 export declare function generateMac(
-  currentKey: ArrayBuffer,
+  currentKey: ArrayBuffer | Uint8Array<ArrayBufferLike>,
   plainText: string,
   action: DukptAction
 ): ArrayBuffer;

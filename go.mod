@@ -3,6 +3,7 @@ module github.com/arukiidou/xk6-dukpt
 go 1.26.3
 
 require (
+	github.com/grafana/sobek v0.0.0-20260908083152-4698bc773ae7
 	github.com/moov-io/dukpt v0.0.0-20260910041243-ed623c1c0190
 	github.com/stretchr/testify v1.12.1
 	go.k6.io/k6/v2 v2.2.1-0.20260911143016-8d0611477719 // k6 2.3.0+ for using uint8array-base64
@@ -39,7 +40,6 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/goreleaser/fileglob v1.4.0 // indirect
 	github.com/grafana/k6foundry v0.5.3 // indirect
-	github.com/grafana/sobek v0.0.0-20260908083152-4698bc773ae7 // indirect
 	github.com/grafana/sobek-webapi-encoding v0.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
 	github.com/hhatto/gorst v0.0.0-20181029133204-ca9f730cac5b // indirect

@@ -3,7 +3,21 @@
 
 package des
 
-import "github.com/moov-io/dukpt/pkg/des"
+import (
+	"fmt"
+
+	"github.com/grafana/sobek"
+	"github.com/moov-io/dukpt/pkg/des"
+)
+
+// desBlockLen is the TDEA block length, the only IV length CBC mode accepts.
+const desBlockLen = 8
+
+// newArrayBuffer returns raw bytes as JS ArrayBuffer.
+func (m *module) newArrayBuffer(b []byte) *sobek.ArrayBuffer {
+	ab := m.vu.Runtime().NewArrayBuffer(b)
+	return &ab
+}
 
 // [des.DeriveCurrentTransactionKey] port from moov-io
 //
@@ -12,10 +26,14 @@ import "github.com/moov-io/dukpt/pkg/des"
 //   - ksn[ArrayBuffer] is 10 bytes key serial number
 //
 // Return Params:
-//   - result - 16 bytes transaction key
+//   - result[ArrayBuffer] - 16 bytes transaction key
 //   - err
-func DeriveCurrentTransactionKey(ik, ksn []byte) ([]byte, error) {
-	return des.DeriveCurrentTransactionKey(ik, ksn)
+func (m *module) DeriveCurrentTransactionKey(ik, ksn []byte) (*sobek.ArrayBuffer, error) {
+	ck, err := des.DeriveCurrentTransactionKey(ik, ksn)
+	if err != nil {
+		return nil, err
+	}
+	return m.newArrayBuffer(ck), nil
 }
 
 // [des.DerivationOfInitialKey] port from moov-io
@@ -25,10 +43,14 @@ func DeriveCurrentTransactionKey(ik, ksn []byte) ([]byte, error) {
 //   - bdk[ArrayBuffer] is 16 bytes base derivative Key
 //
 // Return Params:
-//   - result - 16 bytes initial key
+//   - result[ArrayBuffer] - 16 bytes initial key
 //   - err
-func DerivationOfInitialKey(bdk, ksn []byte) ([]byte, error) {
-	return des.DerivationOfInitialKey(bdk, ksn)
+func (m *module) DerivationOfInitialKey(bdk, ksn []byte) (*sobek.ArrayBuffer, error) {
+	ik, err := des.DerivationOfInitialKey(bdk, ksn)
+	if err != nil {
+		return nil, err
+	}
+	return m.newArrayBuffer(ik), nil
 }
 
 // [des.EncryptPin] port from moov-io
@@ -41,10 +63,14 @@ func DerivationOfInitialKey(bdk, ksn []byte) ([]byte, error) {
 //     ("ISO-0", "ISO-1", "ISO-2", "ISO-3", "ISO-4", "ANSI", "ECI1", "ECI2", "ECI3", "ECI4", "VISA1", "VISA2", "VISA3", "VISA4")
 //
 // Return Params:
-//   - result - cipher text
+//   - result[ArrayBuffer] - cipher text
 //   - err
-func EncryptPin(currentKey []byte, pin, pan, format string) ([]byte, error) {
-	return des.EncryptPin(currentKey, pin, pan, format)
+func (m *module) EncryptPin(currentKey []byte, pin, pan, format string) (*sobek.ArrayBuffer, error) {
+	ciphertext, err := des.EncryptPin(currentKey, pin, pan, format)
+	if err != nil {
+		return nil, err
+	}
+	return m.newArrayBuffer(ciphertext), nil
 }
 
 // [des.DecryptPin] port from moov-io
@@ -67,15 +93,24 @@ func DecryptPin(currentKey, ciphertext []byte, pan, format string) (string, erro
 //
 // Params:
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
-//   - iv[ArrayBuffer] is initial vector, null for the default zero vector
+//   - iv[ArrayBuffer] is the 8 byte initial vector, null or empty for the default zero vector
 //   - plainText is transaction request data
 //   - action is "request" or "response"
 //
 // Return Params:
-//   - result - encrypted data, zero padded to a multiple of 8 bytes
+//   - result[ArrayBuffer] - encrypted data, zero padded to a multiple of 8 bytes
 //   - err
-func EncryptData(currentKey, iv []byte, plainText, action string) ([]byte, error) {
-	return des.EncryptData(currentKey, iv, plainText, action)
+func (m *module) EncryptData(currentKey, iv []byte, plainText, action string) (*sobek.ArrayBuffer, error) {
+	iv, err := normalizeIV(iv)
+	if err != nil {
+		return nil, err
+	}
+
+	ciphertext, err := des.EncryptData(currentKey, iv, plainText, action)
+	if err != nil {
+		return nil, err
+	}
+	return m.newArrayBuffer(ciphertext), nil
 }
 
 // [des.DecryptData] port from moov-io
@@ -83,14 +118,18 @@ func EncryptData(currentKey, iv []byte, plainText, action string) ([]byte, error
 // Params:
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
 //   - ciphertext[ArrayBuffer] is encrypted text
-//   - iv[ArrayBuffer] is initial vector, null for the default zero vector
+//   - iv[ArrayBuffer] is the 8 byte initial vector, null or empty for the default zero vector
 //   - action is "request" or "response"
 //
 // Return Params:
 //   - result - transaction request data, zero padded to a multiple of 8 bytes
 //   - err
 func DecryptData(currentKey, ciphertext, iv []byte, action string) (string, error) {
-	return des.DecryptData(currentKey, ciphertext, normalizeIV(iv), action)
+	iv, err := normalizeIV(iv)
+	if err != nil {
+		return "", err
+	}
+	return des.DecryptData(currentKey, ciphertext, iv, action)
 }
 
 // [des.GenerateMac] port from moov-io
@@ -101,17 +140,25 @@ func DecryptData(currentKey, ciphertext, iv []byte, action string) (string, erro
 //   - action is "request" or "response"
 //
 // Return Params:
-//   - result - 8 bytes mac, use the first 4 bytes as the ANSI X9.24-1 mac
+//   - result[ArrayBuffer] - 8 bytes mac, use the first 4 bytes as the ANSI X9.24-1 mac
 //   - err
-func GenerateMac(currentKey []byte, plainText, action string) ([]byte, error) {
-	return des.GenerateMac(currentKey, plainText, action)
+func (m *module) GenerateMac(currentKey []byte, plainText, action string) (*sobek.ArrayBuffer, error) {
+	mac, err := des.GenerateMac(currentKey, plainText, action)
+	if err != nil {
+		return nil, err
+	}
+	return m.newArrayBuffer(mac), nil
 }
 
-// des.DecryptData widens the IV only when it is nil, so a zero-length one
-// reaches cipher.NewCBCDecrypter and panics.
-func normalizeIV(iv []byte) []byte {
+// normalizeIV returns the IV as the one block CBC mode demands. A missing or
+// empty IV becomes the zero vector; any other length is rejected, instead of
+// letting moov-io pad, truncate, or panic on it.
+func normalizeIV(iv []byte) ([]byte, error) {
 	if len(iv) == 0 {
-		return nil
+		return make([]byte, desBlockLen), nil
 	}
-	return iv
+	if len(iv) != desBlockLen {
+		return nil, fmt.Errorf("iv must be %d bytes, got %d", desBlockLen, len(iv))
+	}
+	return iv, nil
 }

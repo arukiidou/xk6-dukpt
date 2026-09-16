@@ -132,8 +132,12 @@ func EncryptDataAsHex(currentKey, iv, plainText, action string) (string, error) 
 	if err != nil {
 		return "", err
 	}
+	nIv, err := normalizeIV(rawIv)
+	if err != nil {
+		return "", err
+	}
 
-	ciphertext, err := des.EncryptData(rawCurrentKey, normalizeIV(rawIv), plainText, action)
+	ciphertext, err := des.EncryptData(rawCurrentKey, nIv, plainText, action)
 	if err != nil {
 		return "", err
 	}
@@ -163,8 +167,12 @@ func DecryptDataAsHex(currentKey, ciphertext, iv, action string) (string, error)
 	if err != nil {
 		return "", err
 	}
+	nIv, err := normalizeIV(rawIv)
+	if err != nil {
+		return "", err
+	}
 
-	return des.DecryptData(rawCurrentKey, rawCiphertext, normalizeIV(rawIv), action)
+	return des.DecryptData(rawCurrentKey, rawCiphertext, nIv, action)
 }
 
 // [des.GenerateMac] port from moov-io, as a Hex variant

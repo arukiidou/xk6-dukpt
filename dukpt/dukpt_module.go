@@ -25,7 +25,7 @@ type module struct {
 func (m *module) Exports() modules.Exports {
 	base := map[string]any{
 		"getDesTcFromKsn":    GetDesTcFromKsn,
-		"generateNextDesKsn": GenerateNextDesKsn,
+		"generateNextDesKsn": m.GenerateNextDesKsn,
 	}
 	base64 := map[string]any{
 		"getDesTcFromKsnAsBase64":    GetDesTcFromKsnAsBase64,

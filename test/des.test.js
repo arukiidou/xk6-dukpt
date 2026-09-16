@@ -59,4 +59,8 @@ export default async function () {
     'generateMac(ck, data, "request")': () => new Uint8Array(reqMac).toBase64() === reqMacExpected,
     'generateMac(ck, data, "response")': () => new Uint8Array(resMac).toBase64() === resMacExpected,
   });
+
+  check(null, {
+    'the raw APIs return an ArrayBuffer': () => [ik, ck, pinEnc, reqEnc, resEnc, reqMac, resMac].every((v) => v instanceof ArrayBuffer),
+  });
 }
