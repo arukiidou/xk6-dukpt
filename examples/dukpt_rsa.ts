@@ -52,7 +52,7 @@ async function test(){
   const ck = deriveCurrentTransactionKey(ik, ksn);
 
   const ikExpected = "asKS+qExW02FirOj19WTOg=="; //"6AC292FAA1315B4D858AB3A3D7D5933A";
-  const ckExpected = "BCZmtJGEz6No3pYo0Dl7yQ=="; //"042666B49184CFA368DE9628D0397BF9";
+  const ckExpected = "BCZmtJGEz6No3pYo0Dl7yQ=="; //"042666B49184CFA368DE9628D0397BC9";
   
   check(null, {
     'derivationOfInitialKeyAsBase64(bdk, ksn)': () => new Uint8Array(ik).toBase64() === ikExpected,

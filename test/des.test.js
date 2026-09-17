@@ -9,7 +9,7 @@ export const options = {
 
 export default async function () {
   const ikExpected = "asKS+qExW02FirOj19WTOg=="; //"6AC292FAA1315B4D858AB3A3D7D5933A";
-  const ckExpected = "BCZmtJGEz6No3pYo0Dl7yQ=="; //"042666B49184CFA368DE9628D0397BF9";
+  const ckExpected = "BCZmtJGEz6No3pYo0Dl7yQ=="; //"042666B49184CFA368DE9628D0397BC9";
   const pinEncExpected = "G5wYReuZOno="; //"1B9C1845EB993A7A";
 
   const bdk = Uint8Array.fromBase64("ASNFZ4mrze/+3LqYdlQyEA=="); //"0123456789ABCDEFFEDCBA9876543210";
