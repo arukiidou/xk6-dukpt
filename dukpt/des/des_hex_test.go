@@ -80,7 +80,7 @@ func TestHexMoovCompatibility(t *testing.T) {
 
 			decReq, err := DecryptDataAsHex(ck, reqEnc, "", pkg.ActionRequest)
 			require.NoError(t, err)
-			require.Equal(t, data, decReq[:len(data)])
+			require.Equal(t, encodeUpperHex([]byte(data)), decReq[:len(data)*2])
 
 			resEnc, err := EncryptDataAsHex(ck, "", data, pkg.ActionResponse)
 			require.NoError(t, err)
@@ -88,7 +88,7 @@ func TestHexMoovCompatibility(t *testing.T) {
 
 			decRes, err := DecryptDataAsHex(ck, resEnc, "", pkg.ActionResponse)
 			require.NoError(t, err)
-			require.Equal(t, data, decRes[:len(data)])
+			require.Equal(t, encodeUpperHex([]byte(data)), decRes[:len(data)*2])
 
 			reqMac, err := GenerateMacAsHex(ck, data, pkg.ActionRequest)
 			require.NoError(t, err)
@@ -258,7 +258,7 @@ func TestHexIVLength(t *testing.T) {
 
 			plaintext, err := DecryptDataAsHex(hx.CurrentKey, ciphertext, tt.iv, pkg.ActionRequest)
 			require.NoError(t, err)
-			require.Equal(t, data, plaintext[:len(data)])
+			require.Equal(t, encodeUpperHex([]byte(data)), plaintext[:len(data)*2])
 		})
 	}
 }

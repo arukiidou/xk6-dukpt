@@ -112,7 +112,7 @@ export declare function decryptData(
   ciphertext: ArrayBuffer | Uint8Array<ArrayBufferLike>,
   iv: ArrayBuffer | Uint8Array<ArrayBufferLike> | null,
   action: DukptAction
-): string;
+): ArrayBuffer;
 
 /**
  * k6 API for [des.GenerateMac] port from moov-io,

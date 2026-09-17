@@ -38,6 +38,8 @@ export default function () {
   const dataResEncExpected = "H8yJr2YiLye5A4mLsryFic2/3l7Gr8wl"; //"1FCC89AF66222F27B903898BB2BC8589CDBFDE5EC6AFCC25";
 
   const data = "4012345678909D987";
+  // the decrypted data comes back base64 encoded, zero padded to a multiple of 8 bytes.
+  const dataDecExpected = "NDAxMjM0NTY3ODkwOUQ5ODcAAAAAAAAA"; //"343031323334353637383930394439383700000000000000";
 
   const reqEnc = encryptDataAsBase64(ck, "", data, "request")
   const resEnc = encryptDataAsBase64(ck, "", data, "response")
@@ -45,8 +47,8 @@ export default function () {
   check(null, {
     'encryptDataAsBase64(ck, "", data, "request")': () => reqEnc === dataReqEncExpected,
     'encryptDataAsBase64(ck, "", data, "response")': () => resEnc === dataResEncExpected,
-    'decryptDataAsBase64(ck, reqEnc, "", "request")': () => decryptDataAsBase64(ck, reqEnc, "", "request").slice(0, data.length) === data,
-    'decryptDataAsBase64(ck, resEnc, "", "response")': () => decryptDataAsBase64(ck, resEnc, "", "response").slice(0, data.length) === data,
+    'decryptDataAsBase64(ck, reqEnc, "", "request")': () => decryptDataAsBase64(ck, reqEnc, "", "request") === dataDecExpected,
+    'decryptDataAsBase64(ck, resEnc, "", "response")': () => decryptDataAsBase64(ck, resEnc, "", "response") === dataDecExpected,
   });
 
   const reqMacExpected = "nMx4Fz/E+2Q="; //"9CCC78173FC4FB64";

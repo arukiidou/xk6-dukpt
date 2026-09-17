@@ -150,20 +150,17 @@ func TestMoovCompatibility(t *testing.T) {
 			reqEnc := unwrap(m.EncryptData(ck, nil, data, pkg.ActionRequest))
 			require.Equal(t, moov.DataReqEnc, reqEnc)
 
-			decReq, err := DecryptData(ck, reqEnc, nil, pkg.ActionRequest)
-			require.NoError(t, err)
-			require.Equal(t, data, decReq[:len(data)])
+			decReq := unwrap(m.DecryptData(ck, reqEnc, nil, pkg.ActionRequest))
+			require.Equal(t, data, string(decReq[:len(data)]))
 
 			resEnc := unwrap(m.EncryptData(ck, nil, data, pkg.ActionResponse))
 			require.Equal(t, moov.DataResEnc, resEnc)
 
-			decRes, err := DecryptData(ck, resEnc, nil, pkg.ActionResponse)
-			require.NoError(t, err)
-			require.Equal(t, data, decRes[:len(data)])
+			decRes := unwrap(m.DecryptData(ck, resEnc, nil, pkg.ActionResponse))
+			require.Equal(t, data, string(decRes[:len(data)]))
 
 			// An empty IV must behave like the nil default instead of panicking.
-			decEmptyIV, err := DecryptData(ck, reqEnc, []byte{}, pkg.ActionRequest)
-			require.NoError(t, err)
+			decEmptyIV := unwrap(m.DecryptData(ck, reqEnc, []byte{}, pkg.ActionRequest))
 			require.Equal(t, decReq, decEmptyIV)
 
 			reqMac := unwrap(m.GenerateMac(ck, data, pkg.ActionRequest))
@@ -212,7 +209,7 @@ func TestIVLength(t *testing.T) {
 				_, err := m.EncryptData(currentKey, tt.iv, data, pkg.ActionRequest)
 				require.ErrorContains(t, err, fmt.Sprintf("iv must be 8 bytes, got %d", len(tt.iv)))
 
-				_, err = DecryptData(currentKey, nil, tt.iv, pkg.ActionRequest)
+				_, err = m.DecryptData(currentKey, nil, tt.iv, pkg.ActionRequest)
 				require.ErrorContains(t, err, fmt.Sprintf("iv must be 8 bytes, got %d", len(tt.iv)))
 				return
 			}
@@ -220,9 +217,8 @@ func TestIVLength(t *testing.T) {
 			ciphertext := unwrap(m.EncryptData(currentKey, tt.iv, data, pkg.ActionRequest))
 			require.Equal(t, unwrap(m.EncryptData(currentKey, tt.block, data, pkg.ActionRequest)), ciphertext)
 
-			plaintext, err := DecryptData(currentKey, ciphertext, tt.iv, pkg.ActionRequest)
-			require.NoError(t, err)
-			require.Equal(t, data, plaintext[:len(data)])
+			plaintext := unwrap(m.DecryptData(currentKey, ciphertext, tt.iv, pkg.ActionRequest))
+			require.Equal(t, data, string(plaintext[:len(data)]))
 		})
 	}
 }
@@ -298,9 +294,8 @@ func TestRawInputsNotModified(t *testing.T) {
 		{name: "EncryptData", inputs: [][]byte{seq.CurrentKey, iv}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
 			unwrap(m.EncryptData(seq.CurrentKey, iv, data, pkg.ActionRequest))
 		}},
-		{name: "DecryptData", inputs: [][]byte{seq.CurrentKey, seq.DataReqEnc, iv}, call: func(m *module, _ func(*sobek.ArrayBuffer, error) []byte) {
-			_, err := DecryptData(seq.CurrentKey, seq.DataReqEnc, iv, pkg.ActionRequest)
-			require.NoError(t, err)
+		{name: "DecryptData", inputs: [][]byte{seq.CurrentKey, seq.DataReqEnc, iv}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
+			unwrap(m.DecryptData(seq.CurrentKey, seq.DataReqEnc, iv, pkg.ActionRequest))
 		}},
 		{name: "GenerateMac", inputs: [][]byte{seq.CurrentKey}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
 			unwrap(m.GenerateMac(seq.CurrentKey, data, pkg.ActionRequest))

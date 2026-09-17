@@ -83,7 +83,7 @@ export declare function encryptDataAsBase64(
  * @param ciphertext The encrypted data as a base64 string.
  * @param iv The initial vector as a base64 string, empty for the default zero vector.
  * @param action The request or response action.
- * @returns The transaction request data, zero padded to a multiple of 8 bytes.
+ * @returns The transaction request data as a base64 string, zero padded to a multiple of 8 bytes.
  */
 export declare function decryptDataAsBase64(
   currentKey: string,

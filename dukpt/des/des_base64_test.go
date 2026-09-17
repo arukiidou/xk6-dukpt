@@ -80,7 +80,9 @@ func TestBase64MoovCompatibility(t *testing.T) {
 
 			decReq, err := DecryptDataAsBase64(ck, reqEnc, "", pkg.ActionRequest)
 			require.NoError(t, err)
-			require.Equal(t, data, decReq[:len(data)])
+			rawDecReq, err := base64.StdEncoding.DecodeString(decReq)
+			require.NoError(t, err)
+			require.Equal(t, data, string(rawDecReq[:len(data)]))
 
 			resEnc, err := EncryptDataAsBase64(ck, "", data, pkg.ActionResponse)
 			require.NoError(t, err)
@@ -88,7 +90,9 @@ func TestBase64MoovCompatibility(t *testing.T) {
 
 			decRes, err := DecryptDataAsBase64(ck, resEnc, "", pkg.ActionResponse)
 			require.NoError(t, err)
-			require.Equal(t, data, decRes[:len(data)])
+			rawDecRes, err := base64.StdEncoding.DecodeString(decRes)
+			require.NoError(t, err)
+			require.Equal(t, data, string(rawDecRes[:len(data)]))
 
 			reqMac, err := GenerateMacAsBase64(ck, data, pkg.ActionRequest)
 			require.NoError(t, err)
@@ -258,7 +262,9 @@ func TestBase64IVLength(t *testing.T) {
 
 			plaintext, err := DecryptDataAsBase64(b64.CurrentKey, ciphertext, tt.iv, pkg.ActionRequest)
 			require.NoError(t, err)
-			require.Equal(t, data, plaintext[:len(data)])
+			rawPlaintext, err := base64.StdEncoding.DecodeString(plaintext)
+			require.NoError(t, err)
+			require.Equal(t, data, string(rawPlaintext[:len(data)]))
 		})
 	}
 }

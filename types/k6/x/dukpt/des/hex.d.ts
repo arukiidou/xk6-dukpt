@@ -83,7 +83,7 @@ export declare function encryptDataAsHex(
  * @param ciphertext The encrypted data as a hex string (case-insensitive).
  * @param iv The initial vector as a hex string, empty for the default zero vector.
  * @param action The request or response action.
- * @returns The transaction request data, zero padded to a multiple of 8 bytes.
+ * @returns The transaction request data as an uppercase hex string, zero padded to a multiple of 8 bytes.
  */
 export declare function decryptDataAsHex(
   currentKey: string,

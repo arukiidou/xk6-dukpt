@@ -152,7 +152,7 @@ func EncryptDataAsHex(currentKey, iv, plainText, action string) (string, error) 
 // action is "request" or "response".
 //
 // Return Params:
-//   - result is transaction request data (plain text), zero padded to a multiple of 8 bytes
+//   - result is uppercase hex string - transaction request data, zero padded to a multiple of 8 bytes
 //   - err
 func DecryptDataAsHex(currentKey, ciphertext, iv, action string) (string, error) {
 	rawCurrentKey, err := hex.DecodeString(currentKey)
@@ -172,7 +172,11 @@ func DecryptDataAsHex(currentKey, ciphertext, iv, action string) (string, error)
 		return "", err
 	}
 
-	return des.DecryptData(rawCurrentKey, rawCiphertext, nIv, action)
+	plaintext, err := des.DecryptData(rawCurrentKey, rawCiphertext, nIv, action)
+	if err != nil {
+		return "", err
+	}
+	return encodeUpperHex([]byte(plaintext)), nil
 }
 
 // [des.GenerateMac] port from moov-io, as a Hex variant
