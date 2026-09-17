@@ -45,6 +45,8 @@ func TestGetDesTcFromKsn(t *testing.T) {
 
 	for index, ksn := range moovInitialKsns {
 		t.Run(fmt.Sprintf("Sequence #%d KSN: %s", index+1, ksn), func(t *testing.T) {
+			t.Parallel()
+
 			rawKsn := pkg.HexDecode(ksn)
 
 			tc := GetDesTcFromKsn(rawKsn)
@@ -76,6 +78,8 @@ func TestGenerateNextDesKsn(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.ksn, func(t *testing.T) {
+			t.Parallel()
+
 			m, unwrap := newTestModule(t)
 			rawKsn := pkg.HexDecode(tt.ksn)
 

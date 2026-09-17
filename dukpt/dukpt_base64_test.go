@@ -17,6 +17,8 @@ func TestBase64GetDesTcFromKsn(t *testing.T) {
 
 	for index, ksn := range moovInitialKsns {
 		t.Run(fmt.Sprintf("Sequence #%d KSN: %s", index+1, ksn), func(t *testing.T) {
+			t.Parallel()
+
 			rawKsn := pkg.HexDecode(ksn)
 
 			tc, err := GetDesTcFromKsnAsBase64(base64.StdEncoding.EncodeToString(rawKsn))
@@ -35,6 +37,8 @@ func TestBase64GenerateNextDesKsn(t *testing.T) {
 
 	for index, ksn := range moovInitialKsns[:len(moovInitialKsns)-1] {
 		t.Run(fmt.Sprintf("Sequence #%d KSN: %s", index+1, ksn), func(t *testing.T) {
+			t.Parallel()
+
 			next, err := GenerateNextDesKsnAsBase64(base64.StdEncoding.EncodeToString(pkg.HexDecode(ksn)))
 			require.NoError(t, err)
 			require.Equal(t, base64.StdEncoding.EncodeToString(pkg.HexDecode(moovInitialKsns[index+1])), next)

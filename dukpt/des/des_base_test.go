@@ -121,24 +121,26 @@ func TestMoovCompatibility(t *testing.T) {
 
 	for index, moov := range moovInitialSequence {
 		t.Run(fmt.Sprintf("Sequence #%d KSN: %s", index+1, pkg.HexEncode(moov.Ksn)), func(t *testing.T) {
+			t.Parallel()
+
 			m, unwrap := newTestModule(t)
 
 			ik := unwrap(m.DerivationOfInitialKey(moov.Bdk, moov.Ksn))
 			desIk, err := des.DerivationOfInitialKey(moov.Bdk, moov.Ksn)
 			require.NoError(t, err)
-			require.Equal(t, ik, desIk)
+			require.Equal(t, desIk, ik)
 			require.Equal(t, moov.InitialKey, ik)
 
 			ck := unwrap(m.DeriveCurrentTransactionKey(ik, moov.Ksn))
 			desCk, err := des.DeriveCurrentTransactionKey(desIk, moov.Ksn)
 			require.NoError(t, err)
-			require.Equal(t, ck, desCk)
+			require.Equal(t, desCk, ck)
 			require.Equal(t, moov.CurrentKey, ck)
 
 			pinEnc := unwrap(m.EncryptPin(ck, pin, pan, formatVersion))
 			desPinEnc, err := des.EncryptPin(desCk, pin, pan, formatVersion)
 			require.NoError(t, err)
-			require.Equal(t, pinEnc, desPinEnc)
+			require.Equal(t, desPinEnc, pinEnc)
 			require.Equal(t, moov.PinEnc, pinEnc)
 
 			decPin, err := DecryptPin(ck, pinEnc, pan, formatVersion)
@@ -167,13 +169,13 @@ func TestMoovCompatibility(t *testing.T) {
 			reqMac := unwrap(m.GenerateMac(ck, data, pkg.ActionRequest))
 			desReqMac, err := des.GenerateMac(desCk, data, pkg.ActionRequest)
 			require.NoError(t, err)
-			require.Equal(t, reqMac, desReqMac)
+			require.Equal(t, desReqMac, reqMac)
 			require.Equal(t, moov.RequestMac, reqMac)
 
 			resMac := unwrap(m.GenerateMac(ck, data, pkg.ActionResponse))
 			desResMac, err := des.GenerateMac(desCk, data, pkg.ActionResponse)
 			require.NoError(t, err)
-			require.Equal(t, resMac, desResMac)
+			require.Equal(t, desResMac, resMac)
 			require.Equal(t, moov.ResponseMac, resMac)
 		})
 	}
@@ -202,6 +204,8 @@ func TestIVLength(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			m, unwrap := newTestModule(t)
 
 			if tt.block == nil {
@@ -219,6 +223,107 @@ func TestIVLength(t *testing.T) {
 			plaintext, err := DecryptData(currentKey, ciphertext, tt.iv, pkg.ActionRequest)
 			require.NoError(t, err)
 			require.Equal(t, data, plaintext[:len(data)])
+		})
+	}
+}
+
+// Errors moov-io raises have to reach the caller instead of an empty buffer.
+//
+// Only a short BDK and an unknown PIN block format are reachable: moov-io copies
+// every other key into a fixed 16 byte buffer, zero padding it, so a wrong length
+// ik or currentKey silently produces a wrong result rather than an error. That is
+// why the error returns of DeriveCurrentTransactionKey and GenerateMac stay
+// uncovered.
+func TestRawMoovErrors(t *testing.T) {
+	t.Parallel()
+
+	seq := moovInitialSequence[0]
+
+	tests := []struct {
+		name string
+		call func(*module) error
+	}{
+		{name: "short bdk", call: func(m *module) error {
+			_, err := m.DerivationOfInitialKey(seq.Bdk[:len(seq.Bdk)-1], seq.Ksn)
+			return err
+		}},
+		{name: "unknown pin format for encrypt", call: func(m *module) error {
+			_, err := m.EncryptPin(seq.CurrentKey, pin, pan, "ISO-9")
+			return err
+		}},
+		{name: "unknown pin format for decrypt", call: func(_ *module) error {
+			_, err := DecryptPin(seq.CurrentKey, seq.PinEnc, pan, "ISO-9")
+			return err
+		}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			m, _ := newTestModule(t)
+			require.Error(t, tt.call(m))
+		})
+	}
+}
+
+// The raw APIs hand their results to JS as an ArrayBuffer backed by the same
+// bytes, so a moov-io call that writes into one of its arguments would be
+// visible from the script. None of them may touch what they are given.
+func TestRawInputsNotModified(t *testing.T) {
+	t.Parallel()
+
+	seq := moovInitialSequence[0]
+	iv := pkg.HexDecode("0102030405060708")
+
+	tests := []struct {
+		name string
+		// inputs are the arguments that have to come back unchanged.
+		inputs [][]byte
+		call   func(*module, func(*sobek.ArrayBuffer, error) []byte)
+	}{
+		{name: "DerivationOfInitialKey", inputs: [][]byte{seq.Bdk, seq.Ksn}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
+			unwrap(m.DerivationOfInitialKey(seq.Bdk, seq.Ksn))
+		}},
+		{name: "DeriveCurrentTransactionKey", inputs: [][]byte{seq.InitialKey, seq.Ksn}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
+			unwrap(m.DeriveCurrentTransactionKey(seq.InitialKey, seq.Ksn))
+		}},
+		{name: "EncryptPin", inputs: [][]byte{seq.CurrentKey}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
+			unwrap(m.EncryptPin(seq.CurrentKey, pin, pan, formatVersion))
+		}},
+		{name: "DecryptPin", inputs: [][]byte{seq.CurrentKey, seq.PinEnc}, call: func(m *module, _ func(*sobek.ArrayBuffer, error) []byte) {
+			_, err := DecryptPin(seq.CurrentKey, seq.PinEnc, pan, formatVersion)
+			require.NoError(t, err)
+		}},
+		{name: "EncryptData", inputs: [][]byte{seq.CurrentKey, iv}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
+			unwrap(m.EncryptData(seq.CurrentKey, iv, data, pkg.ActionRequest))
+		}},
+		{name: "DecryptData", inputs: [][]byte{seq.CurrentKey, seq.DataReqEnc, iv}, call: func(m *module, _ func(*sobek.ArrayBuffer, error) []byte) {
+			_, err := DecryptData(seq.CurrentKey, seq.DataReqEnc, iv, pkg.ActionRequest)
+			require.NoError(t, err)
+		}},
+		{name: "GenerateMac", inputs: [][]byte{seq.CurrentKey}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
+			unwrap(m.GenerateMac(seq.CurrentKey, data, pkg.ActionRequest))
+		}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			m, unwrap := newTestModule(t)
+
+			// The fixtures are shared, so compare against a copy taken up front.
+			want := make([][]byte, len(tt.inputs))
+			for i, in := range tt.inputs {
+				want[i] = append([]byte(nil), in...)
+			}
+
+			tt.call(m, unwrap)
+
+			for i, in := range tt.inputs {
+				require.Equal(t, want[i], in, "input must not be modified")
+			}
 		})
 	}
 }
