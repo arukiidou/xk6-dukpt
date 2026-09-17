@@ -93,7 +93,7 @@ export declare function decryptPin(
  */
 export declare function encryptData(
   currentKey: ArrayBuffer | Uint8Array<ArrayBufferLike>,
-  iv: ArrayBuffer | null,
+  iv: ArrayBuffer | Uint8Array<ArrayBufferLike> | null,
   plainText: string,
   action: DukptAction
 ): ArrayBuffer;
@@ -110,7 +110,7 @@ export declare function encryptData(
 export declare function decryptData(
   currentKey: ArrayBuffer | Uint8Array<ArrayBufferLike>,
   ciphertext: ArrayBuffer | Uint8Array<ArrayBufferLike>,
-  iv: ArrayBuffer | null,
+  iv: ArrayBuffer | Uint8Array<ArrayBufferLike> | null,
   action: DukptAction
 ): string;
 
