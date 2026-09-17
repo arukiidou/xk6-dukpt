@@ -3,6 +3,8 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/arukiidou/xk6-dukpt.svg)](https://pkg.go.dev/github.com/arukiidou/xk6-dukpt)
 
 - xk6-dukpt is a [k6](https://github.com/grafana/k6) [extension](https://github.com/grafana/xk6) for DUKPT(Derived Unique Key Per Transaction) cryptography operations. port from [moov-io](https://pkg.go.dev/github.com/moov-io/dukpt)
+- It is meant to be called from k6 scripts. Every API that returns an `ArrayBuffer` needs the k6 VU runtime,
+  so it lives on the module instance rather than as a package-level Go function; use [moov-io/dukpt](https://pkg.go.dev/github.com/moov-io/dukpt) directly from Go programs.
 
 # Important
 
@@ -26,6 +28,29 @@ See [examples/dukpt_rsa.ts](examples/dukpt_rsa.ts) for a script that loads the B
 > [!WARNING]
 > This project is under active development.
 > Breaking changes may still occur before a stable release.
+
+### Breaking changes in v0.8.0
+
+The decryptData APIs now return the decrypted bytes encoded, instead of the raw padded string:
+
+| API | v0.7.1 | v0.8.0 |
+| --- | --- | --- |
+| `decryptData` | string | **`ArrayBuffer`** |
+| `decryptDataAsBase64` | string | **base64 string** |
+| `decryptDataAsHex` | string | **uppercase hex string** |
+
+`decryptPin`, `decryptPinAsBase64` and `decryptPinAsHex` are unchanged and still return the PIN itself,
+because a PIN is already a digit string.
+
+Scripts that sliced the old plain text **do not throw** after the upgrade, they just stop matching:
+`ArrayBuffer.prototype.slice` returns another ArrayBuffer, so `decryptData(...).slice(0, n) === data`
+silently becomes `false`. Decode the result instead:
+
+```typescript
+const out = decryptDataAsBase64(ck, ciphertext, "", "request");
+// out === "NDAxMjM0NTY3ODkwOUQ5ODcAAAAAAAAA"
+new TextDecoder().decode(Uint8Array.fromBase64(out).slice(0, 17)); // "4012345678909D987"
+```
 
 ## Requrements
 
@@ -55,7 +80,7 @@ export const options = {
 };
 
 export default function () {
-  // this example uses well-known BDK, but you should replace it with your own.
+  // this example uses well-known IPEK, but you should replace it with your own.
   example("6AC292FAA1315B4D858AB3A3D7D5933A", "FFFF9876543210E00001");
 }
 
@@ -95,8 +120,8 @@ Every ArrayBuffer API has a base64 counterpart with the `AsBase64` suffix
 (`derivationOfInitialKeyAsBase64`, `deriveCurrentTransactionKeyAsBase64`, `encryptPinAsBase64`,
 `decryptPinAsBase64`, `encryptDataAsBase64`, `decryptDataAsBase64`, `generateMacAsBase64`).
 Inputs and outputs are standard base64 strings with padding (RFC 4648), so values can be passed around as plain strings.
-`decryptDataAsBase64` returns the decrypted data base64 encoded as well; `decryptPinAsBase64` is the one
-exception and returns the PIN itself, because a PIN is already a digit string:
+`decryptPinAsBase64` is the one exception and returns the PIN itself
+(see [Breaking changes in v0.8.0](#breaking-changes-in-v080)):
 
 ```typescript
 import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64, generateMacAsBase64 } from "k6/x/dukpt/des";
@@ -115,8 +140,8 @@ Every Base64 API has a hex counterpart with the `AsHex` suffix
 (`derivationOfInitialKeyAsHex`, `deriveCurrentTransactionKeyAsHex`, `encryptPinAsHex`,
 `decryptPinAsHex`, `encryptDataAsHex`, `decryptDataAsHex`, `generateMacAsHex`).
 Inputs are case-insensitive hex strings; outputs are **uppercase** hex, so test vectors can be used as-is.
-`decryptDataAsHex` returns the decrypted data hex encoded as well; `decryptPinAsHex` is the one
-exception and returns the PIN itself, because a PIN is already a digit string:
+`decryptPinAsHex` is the one exception and returns the PIN itself
+(see [Breaking changes in v0.8.0](#breaking-changes-in-v080)):
 
 ```typescript
 import { derivationOfInitialKeyAsHex, deriveCurrentTransactionKeyAsHex, generateMacAsHex } from "k6/x/dukpt/des";
