@@ -54,24 +54,19 @@ export const options = {
   },
 };
 
-export default async function () {
-  ...  
+export default function () {
+  // this example uses well-known BDK, but you should replace it with your own.
+  example("6AC292FAA1315B4D858AB3A3D7D5933A", "FFFF9876543210E00001");
 }
 
-async function example(bdk: string, ksn: string) {
-  // bdk and ksn are hex strings: convert with Uint8Array.fromHex() before the call,
-  // and convert the ArrayBuffer result back with toHex() right after it.
-  const ckExpected = "BCZmtJGEz6No3pYo0Dl7yQ=="; //"042666B49184CFA368DE9628D0397BF9";
+function example(ik: string, ksn: string) {
+  const ckExpected = "042666B49184CFA368DE9628D0397BC9"; //"BCZmtJGEz6No3pYo0Dl7yQ==";
 
-  const ik = Uint8Array.fromHex("...");
-  const ksn = Uint8Array.fromHex("FFFF9876543210E00001");
-  const ck = deriveCurrentTransactionKey(ik, ksn)
-
+  const ck = deriveCurrentTransactionKey(Uint8Array.fromHex(ik), Uint8Array.fromHex(ksn));
   check(null, {
-    'deriveCurrentTransactionKey(ik, ksn)': () => ck.toHex() === ckExpected.toHex(),
+    'deriveCurrentTransactionKey(ik, ksn)': () => new Uint8Array(ck).toHex().toUpperCase() === ckExpected,
   });
 }
-
 ```
 
 ## MAC generation
@@ -99,7 +94,7 @@ Inputs and outputs are standard base64 strings with padding (RFC 4648), so value
 import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64, generateMacAsBase64 } from "k6/x/dukpt/des";
 
 const ik = "...";
-const ck = deriveCurrentTransactionKeyAsBase64("...", "//+YdlQyEOAAAQ==");
+const ck = deriveCurrentTransactionKeyAsBase64(ik, "//+YdlQyEOAAAQ==");
 // ck === "BCZmtJGEz6No3pYo0Dl7yQ=="
 
 const mac = generateMacAsBase64(ck, "4012345678909D987", "request");
