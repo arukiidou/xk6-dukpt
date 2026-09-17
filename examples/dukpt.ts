@@ -8,7 +8,7 @@ export const options = {
 };
 
 export default function () {
-  // this example uses well-known BDK, but you should replace it with your own.
+  // this example uses well-known IPEK, but you should replace it with your own.
   example("6AC292FAA1315B4D858AB3A3D7D5933A", "FFFF9876543210E00001");
 }
 
