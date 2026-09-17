@@ -146,7 +146,7 @@ func EncryptDataAsBase64(currentKey, iv, plainText, action string) (string, erro
 // action is "request" or "response".
 //
 // Return Params:
-//   - result is transaction request data (plain text), zero padded to a multiple of 8 bytes
+//   - result is base64 string - transaction request data, zero padded to a multiple of 8 bytes
 //   - err
 func DecryptDataAsBase64(currentKey, ciphertext, iv, action string) (string, error) {
 	rawCurrentKey, err := base64.StdEncoding.DecodeString(currentKey)
@@ -166,7 +166,11 @@ func DecryptDataAsBase64(currentKey, ciphertext, iv, action string) (string, err
 		return "", err
 	}
 
-	return des.DecryptData(rawCurrentKey, rawCiphertext, nIv, action)
+	plaintext, err := des.DecryptData(rawCurrentKey, rawCiphertext, nIv, action)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString([]byte(plaintext)), nil
 }
 
 // [des.GenerateMac] port from moov-io

@@ -38,6 +38,8 @@ export default function () {
   const dataResEncExpected = "1FCC89AF66222F27B903898BB2BC8589CDBFDE5EC6AFCC25";
 
   const data = "4012345678909D987";
+  // the decrypted data comes back hex encoded, zero padded to a multiple of 8 bytes.
+  const dataDecExpected = "343031323334353637383930394439383700000000000000";
 
   const reqEnc = encryptDataAsHex(ck, "", data, "request")
   const resEnc = encryptDataAsHex(ck, "", data, "response")
@@ -45,8 +47,8 @@ export default function () {
   check(null, {
     'encryptDataAsHex(ck, "", data, "request")': () => reqEnc === dataReqEncExpected,
     'encryptDataAsHex(ck, "", data, "response")': () => resEnc === dataResEncExpected,
-    'decryptDataAsHex(ck, reqEnc, "", "request")': () => decryptDataAsHex(ck, reqEnc, "", "request").slice(0, data.length) === data,
-    'decryptDataAsHex(ck, resEnc, "", "response")': () => decryptDataAsHex(ck, resEnc, "", "response").slice(0, data.length) === data,
+    'decryptDataAsHex(ck, reqEnc, "", "request")': () => decryptDataAsHex(ck, reqEnc, "", "request") === dataDecExpected,
+    'decryptDataAsHex(ck, resEnc, "", "response")': () => decryptDataAsHex(ck, resEnc, "", "response") === dataDecExpected,
   });
 
   const reqMacExpected = "9CCC78173FC4FB64";

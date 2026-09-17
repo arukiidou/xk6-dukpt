@@ -46,7 +46,7 @@ xk6 build --k6-version latest --os linux --cgo 0 --with github.com/arukiidou/xk6
 
 ```typescript file=dukpt.ts
 import { check } from "k6";
-import { derivationOfInitialKey, deriveCurrentTransactionKey } from "k6/x/dukpt/des";
+import { deriveCurrentTransactionKey } from "k6/x/dukpt/des";
 
 export const options = {
   thresholds: {
@@ -60,11 +60,17 @@ export default function () {
 }
 
 function example(ik: string, ksn: string) {
-  const ckExpected = "042666B49184CFA368DE9628D0397BC9"; //"BCZmtJGEz6No3pYo0Dl7yQ==";
+  const ckExpected = "042666B49184CFA368DE9628D0397BC9";
+  const ckBase64Expected = "BCZmtJGEz6No3pYo0Dl7yQ==";
 
   const ck = deriveCurrentTransactionKey(Uint8Array.fromHex(ik), Uint8Array.fromHex(ksn));
+  const ckBase64 = new Uint8Array(ck).toBase64();
+
   check(null, {
-    'deriveCurrentTransactionKey(ik, ksn)': () => new Uint8Array(ck).toHex().toUpperCase() === ckExpected,
+    'deriveCurrentTransactionKey(ik, ksn) as hex': () => new Uint8Array(ck).toHex().toUpperCase() === ckExpected,
+    'deriveCurrentTransactionKey(ik, ksn) as base64': () => ckBase64 === ckBase64Expected,
+    // Uint8Array.fromBase64() converts a base64 key back into a call argument.
+    'Uint8Array.fromBase64(ck)': () => Uint8Array.fromBase64(ckBase64).toHex().toUpperCase() === ckExpected,
   });
 }
 ```
@@ -88,7 +94,9 @@ const mac = generateMacAsBase64(ck, "4012345678909D987", "request");
 Every ArrayBuffer API has a base64 counterpart with the `AsBase64` suffix
 (`derivationOfInitialKeyAsBase64`, `deriveCurrentTransactionKeyAsBase64`, `encryptPinAsBase64`,
 `decryptPinAsBase64`, `encryptDataAsBase64`, `decryptDataAsBase64`, `generateMacAsBase64`).
-Inputs and outputs are standard base64 strings with padding (RFC 4648), so values can be passed around as plain strings:
+Inputs and outputs are standard base64 strings with padding (RFC 4648), so values can be passed around as plain strings.
+`decryptDataAsBase64` returns the decrypted data base64 encoded as well; `decryptPinAsBase64` is the one
+exception and returns the PIN itself, because a PIN is already a digit string:
 
 ```typescript
 import { derivationOfInitialKeyAsBase64, deriveCurrentTransactionKeyAsBase64, generateMacAsBase64 } from "k6/x/dukpt/des";
@@ -106,7 +114,9 @@ const mac = generateMacAsBase64(ck, "4012345678909D987", "request");
 Every Base64 API has a hex counterpart with the `AsHex` suffix
 (`derivationOfInitialKeyAsHex`, `deriveCurrentTransactionKeyAsHex`, `encryptPinAsHex`,
 `decryptPinAsHex`, `encryptDataAsHex`, `decryptDataAsHex`, `generateMacAsHex`).
-Inputs are case-insensitive hex strings; outputs are **uppercase** hex, so test vectors can be used as-is:
+Inputs are case-insensitive hex strings; outputs are **uppercase** hex, so test vectors can be used as-is.
+`decryptDataAsHex` returns the decrypted data hex encoded as well; `decryptPinAsHex` is the one
+exception and returns the PIN itself, because a PIN is already a digit string:
 
 ```typescript
 import { derivationOfInitialKeyAsHex, deriveCurrentTransactionKeyAsHex, generateMacAsHex } from "k6/x/dukpt/des";

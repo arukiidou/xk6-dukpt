@@ -122,14 +122,21 @@ func (m *module) EncryptData(currentKey, iv []byte, plainText, action string) (*
 //   - action is "request" or "response"
 //
 // Return Params:
-//   - result - transaction request data, zero padded to a multiple of 8 bytes
+//   - result[ArrayBuffer] - transaction request data, zero padded to a multiple of 8 bytes
 //   - err
-func DecryptData(currentKey, ciphertext, iv []byte, action string) (string, error) {
+func (m *module) DecryptData(currentKey, ciphertext, iv []byte, action string) (*sobek.ArrayBuffer, error) {
 	iv, err := normalizeIV(iv)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return des.DecryptData(currentKey, ciphertext, iv, action)
+
+	plaintext, err := des.DecryptData(currentKey, ciphertext, iv, action)
+	if err != nil {
+		return nil, err
+	}
+	// moov-io hands the plaintext back as a string, but it is the raw padded
+	// block, so it goes to JS as bytes like every other result.
+	return m.newArrayBuffer([]byte(plaintext)), nil
 }
 
 // [des.GenerateMac] port from moov-io

@@ -38,6 +38,8 @@ export default async function () {
   const dataResEncExpected = "H8yJr2YiLye5A4mLsryFic2/3l7Gr8wl"; //"1FCC89AF66222F27B903898BB2BC8589CDBFDE5EC6AFCC25";
 
   const data = "4012345678909D987";
+  // the decrypted data comes back as an ArrayBuffer, zero padded to a multiple of 8 bytes.
+  const dataDecExpected = "NDAxMjM0NTY3ODkwOUQ5ODcAAAAAAAAA"; //"4012345678909D987" + 7 zero bytes;
 
   const reqEnc = encryptData(ck, null, data, "request");
   const resEnc = encryptData(ck, null, data, "response");
@@ -45,8 +47,8 @@ export default async function () {
   check(null, {
     'encryptData(ck, null, data, "request")': () => new Uint8Array(reqEnc).toBase64() === dataReqEncExpected,
     'encryptData(ck, null, data, "response")': () => new Uint8Array(resEnc).toBase64() === dataResEncExpected,
-    'decryptData(ck, reqEnc, null, "request")': () => decryptData(ck, reqEnc, null, "request").slice(0, data.length) === data,
-    'decryptData(ck, resEnc, null, "response")': () => decryptData(ck, resEnc, null, "response").slice(0, data.length) === data,
+    'decryptData(ck, reqEnc, null, "request")': () => new Uint8Array(decryptData(ck, reqEnc, null, "request")).toBase64() === dataDecExpected,
+    'decryptData(ck, resEnc, null, "response")': () => new Uint8Array(decryptData(ck, resEnc, null, "response")).toBase64() === dataDecExpected,
   });
 
   const reqMacExpected = "nMx4Fz/E+2Q="; //"9CCC78173FC4FB64";
@@ -61,6 +63,6 @@ export default async function () {
   });
 
   check(null, {
-    'the raw APIs return an ArrayBuffer': () => [ik, ck, pinEnc, reqEnc, resEnc, reqMac, resMac].every((v) => v instanceof ArrayBuffer),
+    'the raw APIs return an ArrayBuffer': () => [ik, ck, pinEnc, reqEnc, resEnc, reqMac, resMac, decryptData(ck, reqEnc, null, "request")].every((v) => v instanceof ArrayBuffer),
   });
 }

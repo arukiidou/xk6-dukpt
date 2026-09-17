@@ -29,7 +29,7 @@ func (m *module) Exports() modules.Exports {
 		"encryptPin":                  m.EncryptPin,
 		"decryptPin":                  DecryptPin,
 		"encryptData":                 m.EncryptData,
-		"decryptData":                 DecryptData,
+		"decryptData":                 m.DecryptData,
 		"generateMac":                 m.GenerateMac,
 	}
 	base64 := map[string]any{
