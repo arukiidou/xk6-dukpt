@@ -24,7 +24,7 @@
     },
     "ghcr.io/szkiba/devcontainer-features/cdo:1": { "version": "0.1.2" },
     "ghcr.io/szkiba/devcontainer-features/mdcode:1": { "version": "0.2.0" },
-    "ghcr.io/grafana/devcontainer-features/xk6:1": { "version": "1.4.12" }
+    "ghcr.io/grafana/devcontainer-features/xk6:1": { "version": "1.4.14" }
   },
 
   "remoteEnv": {
