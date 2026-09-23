@@ -167,8 +167,12 @@ github.com/montanaflynn/stats v0.6.6 h1:Duep6KMIDpY4Yo11iFsvyqJDyfzLF9+sndUKT+v6
 github.com/montanaflynn/stats v0.6.6/go.mod h1:etXPPgVO6n31NxCd9KQUMvCM+ve0ruNzt6R8Bnaayow=
 github.com/moov-io/dukpt v0.0.0-20260910041243-ed623c1c0190 h1:oPQM3DB5bDkqBYrGdsKjPn8xsi9181q29KAKVt2N2UI=
 github.com/moov-io/dukpt v0.0.0-20260910041243-ed623c1c0190/go.mod h1:hDH8id05Z4bHobzwEphY+FwAfn5EOdhSDTUg7OmY4N4=
+github.com/moov-io/dukpt v0.0.0-20260919025356-9c6d2bf6926d h1:AhmCYZPtv8BnZZGcq6JWF9aSE8/vy6vV/3Xgkk0DDas=
+github.com/moov-io/dukpt v0.0.0-20260919025356-9c6d2bf6926d/go.mod h1:3an0ZsmKbOruyVc3kDiNocCAZJ870kYHEHMJiX7i/XE=
 github.com/moov-io/pinblock v0.0.0-20260910034815-d8495367d51e h1:oJz7VU0qhCdJ3aWFWmBYjcZPIeziCshZMAAjgendWUg=
 github.com/moov-io/pinblock v0.0.0-20260910034815-d8495367d51e/go.mod h1:VOZ+iVepCjx3lEU7UCffO4j/k4J0s7RX0lyPKF7UqBg=
+github.com/moov-io/pinblock v0.0.0-20260919022838-232187b7a17b h1:qH1OF692c1e2ywAgBuSVtmyq8qTCstG8TfEpC4bJ0vk=
+github.com/moov-io/pinblock v0.0.0-20260919022838-232187b7a17b/go.mod h1:VOZ+iVepCjx3lEU7UCffO4j/k4J0s7RX0lyPKF7UqBg=
 github.com/mstoykov/atlas v0.0.0-20220811071828-388f114305dd h1:AC3N94irbx2kWGA8f/2Ks7EQl2LxKIRQYuT9IJDwgiI=
 github.com/mstoykov/atlas v0.0.0-20220811071828-388f114305dd/go.mod h1:9vRHVuLCjoFfE3GT06X0spdOAO+Zzo4AMjdIwUHBvAk=
 github.com/mstoykov/envconfig v1.5.0 h1:E2FgWf73BQt0ddgn7aoITkQHmgwAcHup1s//MsS5/f8=
