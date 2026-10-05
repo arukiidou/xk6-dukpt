@@ -40,8 +40,8 @@ func (m *module) DeriveCurrentTransactionKey(ik, ksn []byte) (*sobek.ArrayBuffer
 // [des.DerivationOfInitialKey] port from moov-io
 //
 // Params:
+//   - bdk[ArrayBuffer] is 16 bytes base derivation key
 //   - ksn[ArrayBuffer] is 10 bytes key serial number
-//   - bdk[ArrayBuffer] is 16 bytes base derivative Key
 //
 // Return Params:
 //   - result[ArrayBuffer] - 16 bytes initial key
