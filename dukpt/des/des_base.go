@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/grafana/sobek"
+	"github.com/moov-io/dukpt/pkg"
 	"github.com/moov-io/dukpt/pkg/des"
 )
 
@@ -95,12 +96,16 @@ func DecryptPin(currentKey, ciphertext []byte, pan, format string) (string, erro
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
 //   - iv[ArrayBuffer] is the 8 byte initial vector, null or empty for the default zero vector
 //   - plainText is transaction request data
-//   - action is "request" or "response"
+//   - action is "request" or "response", anything else is an error.
+//     Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result[ArrayBuffer] - encrypted data, zero padded to a multiple of 8 bytes
 //   - err
 func (m *module) EncryptData(currentKey, iv []byte, plainText, action string) (*sobek.ArrayBuffer, error) {
+	if err := validateAction(action); err != nil {
+		return nil, err
+	}
 	iv, err := normalizeIV(iv)
 	if err != nil {
 		return nil, err
@@ -119,12 +124,16 @@ func (m *module) EncryptData(currentKey, iv []byte, plainText, action string) (*
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
 //   - ciphertext[ArrayBuffer] is encrypted text
 //   - iv[ArrayBuffer] is the 8 byte initial vector, null or empty for the default zero vector
-//   - action is "request" or "response"
+//   - action is "request" or "response", anything else is an error.
+//     Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result[ArrayBuffer] - transaction request data, zero padded to a multiple of 8 bytes
 //   - err
 func (m *module) DecryptData(currentKey, ciphertext, iv []byte, action string) (*sobek.ArrayBuffer, error) {
+	if err := validateAction(action); err != nil {
+		return nil, err
+	}
 	iv, err := normalizeIV(iv)
 	if err != nil {
 		return nil, err
@@ -144,12 +153,16 @@ func (m *module) DecryptData(currentKey, ciphertext, iv []byte, action string) (
 // Params:
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
 //   - plainText is transaction request data
-//   - action is "request" or "response"
+//   - action is "request" or "response", anything else is an error.
+//     Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result[ArrayBuffer] - 8 bytes mac, use the first 4 bytes as the ANSI X9.24-1 mac
 //   - err
 func (m *module) GenerateMac(currentKey []byte, plainText, action string) (*sobek.ArrayBuffer, error) {
+	if err := validateAction(action); err != nil {
+		return nil, err
+	}
 	mac, err := des.GenerateMac(currentKey, plainText, action)
 	if err != nil {
 		return nil, err
@@ -168,4 +181,11 @@ func normalizeIV(iv []byte) ([]byte, error) {
 		return nil, fmt.Errorf("iv must be %d bytes, got %d", desBlockLen, len(iv))
 	}
 	return iv, nil
+}
+
+func validateAction(a string) error {
+	if a != pkg.ActionRequest && a != pkg.ActionResponse {
+		return fmt.Errorf(`action must be "request" or "response", got %q`, a)
+	}
+	return nil
 }

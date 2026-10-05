@@ -112,12 +112,16 @@ func DecryptPinAsBase64(currentKey, ciphertext, pan, format string) (string, err
 // currentKey base64 string - 16 bytes transaction key.
 // iv base64 string - initial vector, empty for the default zero vector.
 // plainText is transaction request data.
-// action is "request" or "response".
+// action is "request" or "response", anything else is an error.
+// Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result is base64 string - encrypted data, zero padded to a multiple of 8 bytes
 //   - err
 func EncryptDataAsBase64(currentKey, iv, plainText, action string) (string, error) {
+	if err := validateAction(action); err != nil {
+		return "", err
+	}
 	rawCurrentKey, err := base64.StdEncoding.DecodeString(currentKey)
 	if err != nil {
 		return "", err
@@ -143,12 +147,16 @@ func EncryptDataAsBase64(currentKey, iv, plainText, action string) (string, erro
 // currentKey base64 string - 16 bytes transaction key.
 // ciphertext base64 string - encrypted text.
 // iv base64 string - initial vector, empty for the default zero vector.
-// action is "request" or "response".
+// action is "request" or "response", anything else is an error.
+// Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result is base64 string - transaction request data, zero padded to a multiple of 8 bytes
 //   - err
 func DecryptDataAsBase64(currentKey, ciphertext, iv, action string) (string, error) {
+	if err := validateAction(action); err != nil {
+		return "", err
+	}
 	rawCurrentKey, err := base64.StdEncoding.DecodeString(currentKey)
 	if err != nil {
 		return "", err
@@ -177,12 +185,16 @@ func DecryptDataAsBase64(currentKey, ciphertext, iv, action string) (string, err
 //
 // currentKey base64 string - 16 bytes transaction key.
 // plainText is transaction request data.
-// action is "request" or "response".
+// action is "request" or "response", anything else is an error.
+// Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result is base64 string - 8 bytes mac, use the first 4 bytes as the ANSI X9.24-1 mac
 //   - err
 func GenerateMacAsBase64(currentKey, plainText, action string) (string, error) {
+	if err := validateAction(action); err != nil {
+		return "", err
+	}
 	rawCurrentKey, err := base64.StdEncoding.DecodeString(currentKey)
 	if err != nil {
 		return "", err
