@@ -5,6 +5,7 @@ package des
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/grafana/sobek"
@@ -543,3 +544,52 @@ func runLenCases(t *testing.T, cases []lenCase) {
 }
 
 func errOf[T any](_ T, err error) error { return err }
+
+func TestInvalidCiphertextLength(t *testing.T) {
+	m, _ := newTestModule(t)
+	const act = pkg.ActionRequest
+	hexKey := "00000000000000000000000000000000"
+	b64Key := "AAAAAAAAAAAAAAAAAAAAAA=="
+
+	tests := []struct {
+		name string
+		call func() error
+		want string
+	}{
+		{
+			name: "ArrayBuffer/empty",
+			call: func() error { return errOf(m.DecryptData(make([]byte, 16), nil, nil, act)) },
+			want: "ciphertext length must be a non-zero multiple of 8 bytes, got 0",
+		},
+		{
+			name: "ArrayBuffer/ragged",
+			call: func() error { return errOf(m.DecryptData(make([]byte, 16), make([]byte, 15), nil, act)) },
+			want: "ciphertext length must be a non-zero multiple of 8 bytes, got 15",
+		},
+		{
+			name: "Hex/empty",
+			call: func() error { return errOf(DecryptDataAsHex(hexKey, "", "", act)) },
+			want: "ciphertext length must be a non-zero multiple of 8 bytes, got 0",
+		},
+		{
+			name: "Hex/ragged",
+			call: func() error { return errOf(DecryptDataAsHex(hexKey, strings.Repeat("00", 15), "", act)) },
+			want: "ciphertext length must be a non-zero multiple of 8 bytes, got 15",
+		},
+		{
+			name: "Base64/empty",
+			call: func() error { return errOf(DecryptDataAsBase64(b64Key, "", "", act)) },
+			want: "ciphertext length must be a non-zero multiple of 8 bytes, got 0",
+		},
+		{
+			name: "Base64/ragged",
+			call: func() error { return errOf(DecryptDataAsBase64(b64Key, "AAAAAAAAAAAAAAAAAAAAAAAAAAA=", "", act)) },
+			want: "ciphertext length must be a non-zero multiple of 8 bytes, got 20",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.EqualError(t, tt.call(), tt.want)
+		})
+	}
+}

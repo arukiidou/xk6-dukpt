@@ -52,6 +52,23 @@ const out = decryptDataAsBase64(ck, ciphertext, "", "request");
 new TextDecoder().decode(Uint8Array.fromBase64(out).slice(0, 17)); // "4012345678909D987"
 ```
 
+### Breaking changes: stricter input validation
+
+Inputs that moov-io silently accepts now return an error before moov-io is called.
+This applies to all variants (ArrayBuffer, Base64, Hex), and is stricter than upstream.
+Scripts that relied on the lenient behavior now fail.
+
+| Argument | Accepted | moov-io behavior | APIs |
+| --- | --- | --- | --- |
+| `action` | exactly `"request"` or `"response"` | any other value (e.g. `"Response"`) is silently processed as `"request"` | `encryptData`, `decryptData`, `generateMac` |
+| `bdk`, `ik`, `currentKey` | exactly 16 bytes | zero padded if short, truncated if long | `deriveCurrentTransactionKey`, `derivationOfInitialKey`, `encryptPin`, `decryptPin`, `encryptData`, `decryptData`, `generateMac` |
+| `ksn` | exactly 10 bytes | not validated | `deriveCurrentTransactionKey`, `derivationOfInitialKey` |
+| `iv` | empty (zero vector) or exactly 8 bytes | padded, truncated, or panics | `encryptData`, `decryptData` |
+| `ciphertext` | non-empty multiple of 8 bytes | zero padded, then decrypted into garbage | `decryptData` |
+
+Errors name the argument, e.g. `ksn must be 10 bytes, got 9` or
+`ciphertext length must be a non-zero multiple of 8 bytes, got 15`.
+
 ## Requirements
 
 - k6 2.3.0+
