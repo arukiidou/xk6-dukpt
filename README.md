@@ -29,6 +29,8 @@ See [examples/dukpt_rsa.ts](examples/dukpt_rsa.ts) for a script that loads the B
 > This project is under active development.
 > Breaking changes may still occur before a stable release.
 
+## Breaking changes
+
 ### Breaking changes in v0.8.0
 
 The decryptData APIs now return the decrypted bytes encoded, instead of the raw padded string:
@@ -52,7 +54,7 @@ const out = decryptDataAsBase64(ck, ciphertext, "", "request");
 new TextDecoder().decode(Uint8Array.fromBase64(out).slice(0, 17)); // "4012345678909D987"
 ```
 
-### Breaking changes: stricter input validation
+### Breaking changes in v0.10.0: stricter input validation
 
 Inputs that moov-io silently accepts now return an error before moov-io is called.
 This applies to all variants (ArrayBuffer, Base64, Hex), and is stricter than upstream.
