@@ -118,12 +118,16 @@ func DecryptPinAsHex(currentKey, ciphertext, pan, format string) (string, error)
 // currentKey hex string - 16 bytes transaction key.
 // iv hex string - initial vector, empty for the default zero vector.
 // plainText is transaction request data.
-// action is "request" or "response".
+// action is "request" or "response", anything else is an error.
+// Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result is uppercase hex string - encrypted data, zero padded to a multiple of 8 bytes
 //   - err
 func EncryptDataAsHex(currentKey, iv, plainText, action string) (string, error) {
+	if err := validateAction(action); err != nil {
+		return "", err
+	}
 	rawCurrentKey, err := hex.DecodeString(currentKey)
 	if err != nil {
 		return "", err
@@ -149,12 +153,16 @@ func EncryptDataAsHex(currentKey, iv, plainText, action string) (string, error) 
 // currentKey hex string - 16 bytes transaction key.
 // ciphertext hex string - encrypted text.
 // iv hex string - initial vector, empty for the default zero vector.
-// action is "request" or "response".
+// action is "request" or "response", anything else is an error.
+// Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result is uppercase hex string - transaction request data, zero padded to a multiple of 8 bytes
 //   - err
 func DecryptDataAsHex(currentKey, ciphertext, iv, action string) (string, error) {
+	if err := validateAction(action); err != nil {
+		return "", err
+	}
 	rawCurrentKey, err := hex.DecodeString(currentKey)
 	if err != nil {
 		return "", err
@@ -183,12 +191,16 @@ func DecryptDataAsHex(currentKey, ciphertext, iv, action string) (string, error)
 //
 // currentKey hex string - 16 bytes transaction key.
 // plainText is transaction request data.
-// action is "request" or "response".
+// action is "request" or "response", anything else is an error.
+// Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result is uppercase hex string - 8 bytes mac, use the first 4 bytes (8 hex characters) as the ANSI X9.24-1 mac
 //   - err
 func GenerateMacAsHex(currentKey, plainText, action string) (string, error) {
+	if err := validateAction(action); err != nil {
+		return "", err
+	}
 	rawCurrentKey, err := hex.DecodeString(currentKey)
 	if err != nil {
 		return "", err

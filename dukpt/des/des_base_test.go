@@ -322,3 +322,36 @@ func TestRawInputsNotModified(t *testing.T) {
 		})
 	}
 }
+
+func TestInvalidAction(t *testing.T) {
+	key := make([]byte, 16)
+	hexKey := "00000000000000000000000000000000"
+	b64Key := "AAAAAAAAAAAAAAAAAAAAAA=="
+
+	for _, action := range []string{"Response", "REQUEST", ""} {
+		t.Run(fmt.Sprintf("%q", action), func(t *testing.T) {
+			m, _ := newTestModule(t)
+
+			_, err := m.EncryptData(key, nil, "data", action)
+			require.Error(t, err)
+			_, err = m.DecryptData(key, make([]byte, 8), nil, action)
+			require.Error(t, err)
+			_, err = m.GenerateMac(key, "data", action)
+			require.Error(t, err)
+
+			_, err = EncryptDataAsHex(hexKey, "", "data", action)
+			require.Error(t, err)
+			_, err = DecryptDataAsHex(hexKey, "0000000000000000", "", action)
+			require.Error(t, err)
+			_, err = GenerateMacAsHex(hexKey, "data", action)
+			require.Error(t, err)
+
+			_, err = EncryptDataAsBase64(b64Key, "", "data", action)
+			require.Error(t, err)
+			_, err = DecryptDataAsBase64(b64Key, "AAAAAAAAAAA=", "", action)
+			require.Error(t, err)
+			_, err = GenerateMacAsBase64(b64Key, "data", action)
+			require.Error(t, err)
+		})
+	}
+}
