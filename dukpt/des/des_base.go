@@ -12,7 +12,11 @@ import (
 )
 
 // desBlockLen is the TDEA block length, the only IV length CBC mode accepts.
-const desBlockLen = 8
+const (
+	desBlockLen = 8
+	desKeyLen   = 16
+	desKsnLen   = 10
+)
 
 // newArrayBuffer returns raw bytes as JS ArrayBuffer.
 func (m *module) newArrayBuffer(b []byte) *sobek.ArrayBuffer {
@@ -30,6 +34,13 @@ func (m *module) newArrayBuffer(b []byte) *sobek.ArrayBuffer {
 //   - result[ArrayBuffer] - 16 bytes transaction key
 //   - err
 func (m *module) DeriveCurrentTransactionKey(ik, ksn []byte) (*sobek.ArrayBuffer, error) {
+	if err := validateKey("ik", ik); err != nil {
+		return nil, err
+	}
+	if err := validateKsn(ksn); err != nil {
+		return nil, err
+	}
+
 	ck, err := des.DeriveCurrentTransactionKey(ik, ksn)
 	if err != nil {
 		return nil, err
@@ -47,6 +58,13 @@ func (m *module) DeriveCurrentTransactionKey(ik, ksn []byte) (*sobek.ArrayBuffer
 //   - result[ArrayBuffer] - 16 bytes initial key
 //   - err
 func (m *module) DerivationOfInitialKey(bdk, ksn []byte) (*sobek.ArrayBuffer, error) {
+	if err := validateKey("bdk", bdk); err != nil {
+		return nil, err
+	}
+	if err := validateKsn(ksn); err != nil {
+		return nil, err
+	}
+
 	ik, err := des.DerivationOfInitialKey(bdk, ksn)
 	if err != nil {
 		return nil, err
@@ -67,6 +85,10 @@ func (m *module) DerivationOfInitialKey(bdk, ksn []byte) (*sobek.ArrayBuffer, er
 //   - result[ArrayBuffer] - cipher text
 //   - err
 func (m *module) EncryptPin(currentKey []byte, pin, pan, format string) (*sobek.ArrayBuffer, error) {
+	if err := validateKey("currentKey", currentKey); err != nil {
+		return nil, err
+	}
+
 	ciphertext, err := des.EncryptPin(currentKey, pin, pan, format)
 	if err != nil {
 		return nil, err
@@ -87,6 +109,10 @@ func (m *module) EncryptPin(currentKey []byte, pin, pan, format string) (*sobek.
 //   - result - pin string (plain text)
 //   - err
 func DecryptPin(currentKey, ciphertext []byte, pan, format string) (string, error) {
+	if err := validateKey("currentKey", currentKey); err != nil {
+		return "", err
+	}
+
 	return des.DecryptPin(currentKey, ciphertext, pan, format)
 }
 
@@ -108,6 +134,10 @@ func (m *module) EncryptData(currentKey, iv []byte, plainText, action string) (*
 	}
 	iv, err := normalizeIV(iv)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := validateKey("currentKey", currentKey); err != nil {
 		return nil, err
 	}
 
@@ -139,6 +169,10 @@ func (m *module) DecryptData(currentKey, ciphertext, iv []byte, action string) (
 		return nil, err
 	}
 
+	if err := validateKey("currentKey", currentKey); err != nil {
+		return nil, err
+	}
+
 	plaintext, err := des.DecryptData(currentKey, ciphertext, iv, action)
 	if err != nil {
 		return nil, err
@@ -163,6 +197,10 @@ func (m *module) GenerateMac(currentKey []byte, plainText, action string) (*sobe
 	if err := validateAction(action); err != nil {
 		return nil, err
 	}
+	if err := validateKey("currentKey", currentKey); err != nil {
+		return nil, err
+	}
+
 	mac, err := des.GenerateMac(currentKey, plainText, action)
 	if err != nil {
 		return nil, err
@@ -188,4 +226,21 @@ func validateAction(a string) error {
 		return fmt.Errorf(`action must be "request" or "response", got %q`, a)
 	}
 	return nil
+}
+
+func requireLen(name string, b []byte, n int) error {
+	if len(b) != n {
+		return fmt.Errorf("%s must be %d bytes, got %d", name, n, len(b))
+	}
+	return nil
+}
+
+// validateKey checks a 16 byte DUKPT key, moov-io pads or truncates other lengths.
+func validateKey(name string, key []byte) error {
+	return requireLen(name, key, desKeyLen)
+}
+
+// validateKsn checks a 10 byte key serial number, moov-io does not.
+func validateKsn(ksn []byte) error {
+	return requireLen("ksn", ksn, desKsnLen)
 }

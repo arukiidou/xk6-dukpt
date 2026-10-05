@@ -355,3 +355,191 @@ func TestInvalidAction(t *testing.T) {
 		})
 	}
 }
+
+func TestInvalidKeyAndKsnLength(t *testing.T) {
+	key := make([]byte, 16)
+	ksn := make([]byte, 10)
+	hexKey, hexKsn := "00000000000000000000000000000000", "00000000000000000000"
+	b64Key, b64Ksn := "AAAAAAAAAAAAAAAAAAAAAA==", "AAAAAAAAAAAAAAAAAAAA"
+	// one byte short in every encoding
+	shortKey, shortKsn := key[:15], ksn[:9]
+	hexShortKey, hexShortKsn := hexKey[:30], hexKsn[:18]
+	b64ShortKey, b64ShortKsn := "AAAAAAAAAAAAAAAAAAAA", "AAAAAAAAAAAA"
+
+	m, _ := newTestModule(t)
+	const act = pkg.ActionRequest
+
+	t.Run("ArrayBuffer", func(t *testing.T) {
+		runLenCases(t, []lenCase{
+			{
+				name: "derive/ik",
+				call: func() error { return errOf(m.DeriveCurrentTransactionKey(shortKey, ksn)) },
+				want: "ik must be 16 bytes, got 15",
+			},
+			{
+				name: "derive/ksn",
+				call: func() error { return errOf(m.DeriveCurrentTransactionKey(key, shortKsn)) },
+				want: "ksn must be 10 bytes, got 9",
+			},
+			{
+				name: "derivation/bdk",
+				call: func() error { return errOf(m.DerivationOfInitialKey(shortKey, ksn)) },
+				want: "bdk must be 16 bytes, got 15",
+			},
+			{
+				name: "derivation/ksn",
+				call: func() error { return errOf(m.DerivationOfInitialKey(key, shortKsn)) },
+				want: "ksn must be 10 bytes, got 9",
+			},
+			{
+				name: "encryptPin",
+				call: func() error { return errOf(m.EncryptPin(shortKey, "1234", "4012345678909", "ISO-0")) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+			{
+				name: "decryptPin",
+				call: func() error { return errOf(DecryptPin(shortKey, make([]byte, 8), "4012345678909", "ISO-0")) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+			{
+				name: "encryptData",
+				call: func() error { return errOf(m.EncryptData(shortKey, nil, "data", act)) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+			{
+				name: "decryptData",
+				call: func() error { return errOf(m.DecryptData(shortKey, make([]byte, 8), nil, act)) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+			{
+				name: "generateMac",
+				call: func() error { return errOf(m.GenerateMac(shortKey, "data", act)) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+			{
+				name: "derive/ik long",
+				call: func() error { return errOf(m.DeriveCurrentTransactionKey(append(key, 0), ksn)) },
+				want: "ik must be 16 bytes, got 17",
+			},
+		})
+	})
+
+	t.Run("Hex", func(t *testing.T) {
+		runLenCases(t, []lenCase{
+			{
+				name: "derive/ik",
+				call: func() error { return errOf(DeriveCurrentTransactionKeyAsHex(hexShortKey, hexKsn)) },
+				want: "ik must be 16 bytes, got 15",
+			},
+			{
+				name: "derive/ksn",
+				call: func() error { return errOf(DeriveCurrentTransactionKeyAsHex(hexKey, hexShortKsn)) },
+				want: "ksn must be 10 bytes, got 9",
+			},
+			{
+				name: "derivation/bdk",
+				call: func() error { return errOf(DerivationOfInitialKeyAsHex(hexShortKey, hexKsn)) },
+				want: "bdk must be 16 bytes, got 15",
+			},
+			{
+				name: "derivation/ksn",
+				call: func() error { return errOf(DerivationOfInitialKeyAsHex(hexKey, hexShortKsn)) },
+				want: "ksn must be 10 bytes, got 9",
+			},
+			{
+				name: "encryptPin",
+				call: func() error { return errOf(EncryptPinAsHex(hexShortKey, "1234", "4012345678909", "ISO-0")) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+			{
+				name: "decryptPin",
+				call: func() error { return errOf(DecryptPinAsHex(hexShortKey, "0000000000000000", "4012345678909", "ISO-0")) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+			{
+				name: "encryptData",
+				call: func() error { return errOf(EncryptDataAsHex(hexShortKey, "", "data", act)) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+			{
+				name: "decryptData",
+				call: func() error { return errOf(DecryptDataAsHex(hexShortKey, "0000000000000000", "", act)) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+			{
+				name: "generateMac",
+				call: func() error { return errOf(GenerateMacAsHex(hexShortKey, "data", act)) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+		})
+	})
+
+	t.Run("Base64", func(t *testing.T) {
+		runLenCases(t, []lenCase{
+			{
+				name: "derive/ik",
+				call: func() error { return errOf(DeriveCurrentTransactionKeyAsBase64(b64ShortKey, b64Ksn)) },
+				want: "ik must be 16 bytes, got 15",
+			},
+			{
+				name: "derive/ksn",
+				call: func() error { return errOf(DeriveCurrentTransactionKeyAsBase64(b64Key, b64ShortKsn)) },
+				want: "ksn must be 10 bytes, got 9",
+			},
+			{
+				name: "derivation/bdk",
+				call: func() error { return errOf(DerivationOfInitialKeyAsBase64(b64ShortKey, b64Ksn)) },
+				want: "bdk must be 16 bytes, got 15",
+			},
+			{
+				name: "derivation/ksn",
+				call: func() error { return errOf(DerivationOfInitialKeyAsBase64(b64Key, b64ShortKsn)) },
+				want: "ksn must be 10 bytes, got 9",
+			},
+			{
+				name: "encryptPin",
+				call: func() error { return errOf(EncryptPinAsBase64(b64ShortKey, "1234", "4012345678909", "ISO-0")) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+			{
+				name: "decryptPin",
+				call: func() error { return errOf(DecryptPinAsBase64(b64ShortKey, "AAAAAAAAAAA=", "4012345678909", "ISO-0")) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+			{
+				name: "encryptData",
+				call: func() error { return errOf(EncryptDataAsBase64(b64ShortKey, "", "data", act)) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+			{
+				name: "decryptData",
+				call: func() error { return errOf(DecryptDataAsBase64(b64ShortKey, "AAAAAAAAAAA=", "", act)) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+			{
+				name: "generateMac",
+				call: func() error { return errOf(GenerateMacAsBase64(b64ShortKey, "data", act)) },
+				want: "currentKey must be 16 bytes, got 15",
+			},
+		})
+	})
+}
+
+// errOf drops the result, keeping only the error.
+type lenCase struct {
+	name string
+	call func() error
+	want string
+}
+
+func runLenCases(t *testing.T, cases []lenCase) {
+	t.Helper()
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			require.EqualError(t, c.call(), c.want)
+		})
+	}
+}
+
+func errOf[T any](_ T, err error) error { return err }

@@ -33,6 +33,13 @@ func DeriveCurrentTransactionKeyAsHex(ik, ksn string) (string, error) {
 		return "", err
 	}
 
+	if err := validateKey("ik", rawIk); err != nil {
+		return "", err
+	}
+	if err := validateKsn(rawKsn); err != nil {
+		return "", err
+	}
+
 	ck, err := des.DeriveCurrentTransactionKey(rawIk, rawKsn)
 	if err != nil {
 		return "", err
@@ -58,6 +65,13 @@ func DerivationOfInitialKeyAsHex(bdk, ksn string) (string, error) {
 		return "", err
 	}
 
+	if err := validateKey("bdk", rawBdk); err != nil {
+		return "", err
+	}
+	if err := validateKsn(rawKsn); err != nil {
+		return "", err
+	}
+
 	rawIk, err := des.DerivationOfInitialKey(rawBdk, rawKsn)
 	if err != nil {
 		return "", err
@@ -79,6 +93,10 @@ func DerivationOfInitialKeyAsHex(bdk, ksn string) (string, error) {
 func EncryptPinAsHex(currentKey, pin, pan, format string) (string, error) {
 	rawCurrentKey, err := hex.DecodeString(currentKey)
 	if err != nil {
+		return "", err
+	}
+
+	if err := validateKey("currentKey", rawCurrentKey); err != nil {
 		return "", err
 	}
 
@@ -110,6 +128,10 @@ func DecryptPinAsHex(currentKey, ciphertext, pan, format string) (string, error)
 		return "", err
 	}
 
+	if err := validateKey("currentKey", rawCurrentKey); err != nil {
+		return "", err
+	}
+
 	return des.DecryptPin(rawCurrentKey, rawCiphertext, pan, format)
 }
 
@@ -138,6 +160,10 @@ func EncryptDataAsHex(currentKey, iv, plainText, action string) (string, error) 
 	}
 	nIv, err := normalizeIV(rawIv)
 	if err != nil {
+		return "", err
+	}
+
+	if err := validateKey("currentKey", rawCurrentKey); err != nil {
 		return "", err
 	}
 
@@ -180,6 +206,10 @@ func DecryptDataAsHex(currentKey, ciphertext, iv, action string) (string, error)
 		return "", err
 	}
 
+	if err := validateKey("currentKey", rawCurrentKey); err != nil {
+		return "", err
+	}
+
 	plaintext, err := des.DecryptData(rawCurrentKey, rawCiphertext, nIv, action)
 	if err != nil {
 		return "", err
@@ -203,6 +233,10 @@ func GenerateMacAsHex(currentKey, plainText, action string) (string, error) {
 	}
 	rawCurrentKey, err := hex.DecodeString(currentKey)
 	if err != nil {
+		return "", err
+	}
+
+	if err := validateKey("currentKey", rawCurrentKey); err != nil {
 		return "", err
 	}
 
