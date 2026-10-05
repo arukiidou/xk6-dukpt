@@ -152,7 +152,8 @@ func (m *module) EncryptData(currentKey, iv []byte, plainText, action string) (*
 //
 // Params:
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
-//   - ciphertext[ArrayBuffer] is encrypted text
+//   - ciphertext[ArrayBuffer] is encrypted text, a non-empty multiple of 8 bytes
+//     Stricter than upstream (moov-io), which zero pads other lengths.
 //   - iv[ArrayBuffer] is the 8 byte initial vector, null or empty for the default zero vector
 //   - action is "request" or "response", anything else is an error.
 //     Stricter than upstream (moov-io).
@@ -170,6 +171,10 @@ func (m *module) DecryptData(currentKey, ciphertext, iv []byte, action string) (
 	}
 
 	if err := validateKey("currentKey", currentKey); err != nil {
+		return nil, err
+	}
+
+	if err := validateCiphertext(ciphertext); err != nil {
 		return nil, err
 	}
 
@@ -243,4 +248,14 @@ func validateKey(name string, key []byte) error {
 // validateKsn checks a 10 byte key serial number, moov-io does not.
 func validateKsn(ksn []byte) error {
 	return requireLen("ksn", ksn, desKsnLen)
+}
+
+// validateCiphertext requires whole, non-empty CBC blocks. moov-io zero pads a
+// ragged ciphertext before decrypting, so a truncated one yields garbage
+// instead of an error.
+func validateCiphertext(ct []byte) error {
+	if len(ct) == 0 || len(ct)%desBlockLen != 0 {
+		return fmt.Errorf("ciphertext length must be a non-zero multiple of %d bytes, got %d", desBlockLen, len(ct))
+	}
+	return nil
 }

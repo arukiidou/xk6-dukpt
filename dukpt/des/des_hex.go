@@ -177,7 +177,8 @@ func EncryptDataAsHex(currentKey, iv, plainText, action string) (string, error) 
 // [des.DecryptData] port from moov-io, as a Hex variant
 //
 // currentKey hex string - 16 bytes transaction key.
-// ciphertext hex string - encrypted text.
+// ciphertext hex string - encrypted text, a non-empty multiple of 8 bytes.
+// Stricter than upstream (moov-io), which zero pads other lengths.
 // iv hex string - initial vector, empty for the default zero vector.
 // action is "request" or "response", anything else is an error.
 // Stricter than upstream (moov-io).
@@ -207,6 +208,10 @@ func DecryptDataAsHex(currentKey, ciphertext, iv, action string) (string, error)
 	}
 
 	if err := validateKey("currentKey", rawCurrentKey); err != nil {
+		return "", err
+	}
+
+	if err := validateCiphertext(rawCiphertext); err != nil {
 		return "", err
 	}
 

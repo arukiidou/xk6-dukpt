@@ -171,7 +171,8 @@ func EncryptDataAsBase64(currentKey, iv, plainText, action string) (string, erro
 // [des.DecryptData] port from moov-io
 //
 // currentKey base64 string - 16 bytes transaction key.
-// ciphertext base64 string - encrypted text.
+// ciphertext base64 string - encrypted text, a non-empty multiple of 8 bytes.
+// Stricter than upstream (moov-io), which zero pads other lengths.
 // iv base64 string - initial vector, empty for the default zero vector.
 // action is "request" or "response", anything else is an error.
 // Stricter than upstream (moov-io).
@@ -201,6 +202,10 @@ func DecryptDataAsBase64(currentKey, ciphertext, iv, action string) (string, err
 	}
 
 	if err := validateKey("currentKey", rawCurrentKey); err != nil {
+		return "", err
+	}
+
+	if err := validateCiphertext(rawCiphertext); err != nil {
 		return "", err
 	}
 
