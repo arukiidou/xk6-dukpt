@@ -8,7 +8,7 @@
 
 # Important
 
-As with moov-io/dukpt, this extention is mostly for validation and debugging purposes.
+As with moov-io/dukpt, this extension is mostly for validation and debugging purposes.
 
 > [!CAUTION]
 > Use this extension with great care.
@@ -52,7 +52,7 @@ const out = decryptDataAsBase64(ck, ciphertext, "", "request");
 new TextDecoder().decode(Uint8Array.fromBase64(out).slice(0, 17)); // "4012345678909D987"
 ```
 
-## Requrements
+## Requirements
 
 - k6 2.3.0+
   - From this version on, you can combine with `Uint8Array.fromHex()` and `Uint8Array.fromBase64()`.
