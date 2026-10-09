@@ -46,6 +46,14 @@ func TestHexInvalidInput(t *testing.T) {
 
 	_, err = GenerateNextDesKsnAsHex("ZZ")
 	require.Error(t, err)
+
+	// Below 4 bytes moov-io reads counter 0, which is an error here.
+	_, err = GetDesTcFromKsnAsHex("0000FF")
+	require.Error(t, err)
+
+	// 3 bytes would read counter 0 and silently restart it at 1.
+	_, err = GenerateNextDesKsnAsHex("E00008")
+	require.Error(t, err)
 }
 
 func TestHexGenerateNextDesKsn(t *testing.T) {

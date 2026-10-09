@@ -6,8 +6,6 @@ package dukpt
 import (
 	"encoding/hex"
 	"strings"
-
-	"github.com/moov-io/dukpt/pkg"
 )
 
 // encodeUpperHex returns uppercase hex, the notation used by DUKPT test vectors.
@@ -23,13 +21,13 @@ func encodeUpperHex(b []byte) string {
 //   - result is 21 bits transaction counter
 //   - err
 //
-// KSN length is not validated.
+// The KSN must be at least 4 bytes, moov-io returns 0 for shorter ones.
 func GetDesTcFromKsnAsHex(ksn string) (uint32, error) {
 	rawKsn, err := hex.DecodeString(ksn)
 	if err != nil {
 		return 0, err
 	}
-	return pkg.GetDesTcFromKsn(rawKsn), nil
+	return getDesTcFromKsn(rawKsn)
 }
 
 // [pkg.GenerateNextDesKsn] port from moov-io, as a Hex variant

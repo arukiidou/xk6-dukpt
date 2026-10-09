@@ -8,8 +8,8 @@ import type { DukptAction, PinBlockFormat } from "./base";
 /**
  * k6 API for [des.DerivationOfInitialKey] port from moov-io,
  * derives the initial key as a base64 encoded string.
- * @param bdk The base derivation key as a base64 string.
- * @param ksn The key serial number as a base64 string.
+ * @param bdk The base derivation key as a base64 string. Must be exactly 16 bytes (stricter than moov-io).
+ * @param ksn The key serial number as a base64 string. Must be exactly 10 bytes (stricter than moov-io).
  * @returns The derived initial key as a base64 string.
  */
 export declare function derivationOfInitialKeyAsBase64(
@@ -20,8 +20,8 @@ export declare function derivationOfInitialKeyAsBase64(
 /**
  * k6 API for [des.DeriveCurrentTransactionKey] compat with moov-io,
  * derives the current transaction key as a base64 encoded string.
- * @param ik The initial key as a base64 string.
- * @param ksn The key serial number as a base64 string.
+ * @param ik The initial key as a base64 string. Must be exactly 16 bytes (stricter than moov-io).
+ * @param ksn The key serial number as a base64 string. Must be exactly 10 bytes (stricter than moov-io).
  * @returns The derived transaction key as a base64 string.
  */
 export declare function deriveCurrentTransactionKeyAsBase64(
@@ -31,7 +31,7 @@ export declare function deriveCurrentTransactionKeyAsBase64(
 /**
  * k6 API for [des.EncryptPin] port from moov-io,
  * encrypts a PIN block using the DUKPT transaction key.
- * @param currentKey The transaction key as a base64 string.
+ * @param currentKey The transaction key as a base64 string. Must be exactly 16 bytes (stricter than moov-io).
  * @param pin The not formatted pin string.
  * @param pan The not formatted pan string.
  * @param format The pinblock format.
@@ -47,7 +47,7 @@ export declare function encryptPinAsBase64(
 /**
  * k6 API for [des.DecryptPin] port from moov-io,
  * decrypts a PIN block using the DUKPT transaction key.
- * @param currentKey The transaction key as a base64 string.
+ * @param currentKey The transaction key as a base64 string. Must be exactly 16 bytes (stricter than moov-io).
  * @param ciphertext The encrypted pin block as a base64 string.
  * @param pan The not formatted pan string.
  * @param format The pinblock format.
@@ -63,10 +63,10 @@ export declare function decryptPinAsBase64(
 /**
  * k6 API for [des.EncryptData] port from moov-io,
  * encrypts transaction data using the DUKPT transaction key.
- * @param currentKey The transaction key as a base64 string.
- * @param iv The initial vector as a base64 string, empty for the default zero vector.
+ * @param currentKey The transaction key as a base64 string. Must be exactly 16 bytes (stricter than moov-io).
+ * @param iv The initial vector as a base64 string, empty for the default zero vector. Must be 8 bytes if given (stricter than moov-io).
  * @param plainText The transaction request data.
- * @param action The request or response action.
+ * @param action The request or response action. Must be exactly "request" or "response" (stricter than moov-io).
  * @returns The encrypted data as a base64 string, zero padded to a multiple of 8 bytes.
  */
 export declare function encryptDataAsBase64(
@@ -79,10 +79,10 @@ export declare function encryptDataAsBase64(
 /**
  * k6 API for [des.DecryptData] port from moov-io,
  * decrypts transaction data using the DUKPT transaction key.
- * @param currentKey The transaction key as a base64 string.
- * @param ciphertext The encrypted data as a base64 string.
- * @param iv The initial vector as a base64 string, empty for the default zero vector.
- * @param action The request or response action.
+ * @param currentKey The transaction key as a base64 string. Must be exactly 16 bytes (stricter than moov-io).
+ * @param ciphertext The encrypted data as a base64 string. Must be a non-empty multiple of 8 bytes (stricter than moov-io).
+ * @param iv The initial vector as a base64 string, empty for the default zero vector. Must be 8 bytes if given (stricter than moov-io).
+ * @param action The request or response action. Must be exactly "request" or "response" (stricter than moov-io).
  * @returns The transaction request data as a base64 string, zero padded to a multiple of 8 bytes.
  */
 export declare function decryptDataAsBase64(
@@ -95,9 +95,9 @@ export declare function decryptDataAsBase64(
 /**
  * k6 API for [des.GenerateMac] port from moov-io,
  * generates a MAC using the DUKPT transaction key.
- * @param currentKey The transaction key as a base64 string.
+ * @param currentKey The transaction key as a base64 string. Must be exactly 16 bytes (stricter than moov-io).
  * @param plainText The transaction request data.
- * @param action The request or response action.
+ * @param action The request or response action. Must be exactly "request" or "response" (stricter than moov-io).
  * @returns The 8 byte mac as a base64 string. Use the first 4 bytes as the ANSI X9.24-1 mac.
  */
 export declare function generateMacAsBase64(

@@ -69,6 +69,18 @@ Scripts that relied on the lenient behavior now fail.
 Errors name the argument, e.g. `ksn must be 10 bytes, got 9` or
 `ciphertext length must be a non-zero multiple of 8 bytes, got 15`.
 
+### Breaking changes in v0.11.0: KSN length validation for the transaction counter
+
+`getDesTcFromKsn` and `generateNextDesKsn` now return an error for a `ksn` shorter than 4 bytes.
+This applies to all variants (ArrayBuffer, Base64, Hex), and is stricter than upstream.
+Scripts that relied on the lenient behavior now fail.
+
+| Argument | Accepted | moov-io behavior | APIs |
+| --- | --- | --- | --- |
+| `ksn` | at least 4 bytes | `getDesTcFromKsn` reads counter 0 below 4 bytes; `generateNextDesKsn` restarts the counter at 1 below 4 bytes and panics below 3 | `getDesTcFromKsn`, `generateNextDesKsn` |
+
+The raw `getDesTcFromKsn` now throws instead of returning `0`; the Base64 and Hex variants already returned an error for undecodable input.
+
 ## Requirements
 
 - k6 2.3.0+

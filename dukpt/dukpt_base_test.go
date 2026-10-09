@@ -49,18 +49,28 @@ func TestGetDesTcFromKsn(t *testing.T) {
 
 			rawKsn := pkg.HexDecode(ksn)
 
-			tc := GetDesTcFromKsn(rawKsn)
+			tc, err := GetDesTcFromKsn(rawKsn)
+			require.NoError(t, err)
 			require.Equal(t, pkg.GetDesTcFromKsn(rawKsn), tc)
 			require.Equal(t, uint32(index+1), tc)
 		})
 	}
 
 	// Low 21 bits only.
-	require.Equal(t, uint32(0x1FFFFF), GetDesTcFromKsn(pkg.HexDecode("FFFF9876543210FFFFFF")))
+	tc, err := GetDesTcFromKsn(pkg.HexDecode("FFFF9876543210FFFFFF"))
+	require.NoError(t, err)
+	require.Equal(t, uint32(0x1FFFFF), tc)
 
-	// KSN length is not validated.
-	require.Equal(t, uint32(0), GetDesTcFromKsn([]byte{0x01, 0x02, 0x03}))
-	require.Equal(t, uint32(0), GetDesTcFromKsn(nil))
+	// moov-io reads counter 0 below 4 bytes, which is an error here.
+	_, err = GetDesTcFromKsn([]byte{0x01, 0x02, 0x03})
+	require.Error(t, err)
+	_, err = GetDesTcFromKsn(nil)
+	require.Error(t, err)
+
+	// Shortest accepted KSN.
+	tc, err = GetDesTcFromKsn([]byte{0x00, 0x00, 0x00, 0x05})
+	require.NoError(t, err)
+	require.Equal(t, uint32(5), tc)
 }
 
 func TestGenerateNextDesKsn(t *testing.T) {
@@ -101,6 +111,10 @@ func TestGenerateNextDesKsn(t *testing.T) {
 
 	// Short KSN errors instead of panicking.
 	_, err = m.GenerateNextDesKsn([]byte{0x01, 0x02})
+	require.Error(t, err)
+
+	// 3 bytes would read counter 0 and silently restart it at 1.
+	_, err = m.GenerateNextDesKsn([]byte{0xE0, 0x00, 0x08})
 	require.Error(t, err)
 	_, err = m.GenerateNextDesKsn(nil)
 	require.Error(t, err)
