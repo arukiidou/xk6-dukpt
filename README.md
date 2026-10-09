@@ -29,58 +29,6 @@ See [examples/dukpt_rsa.ts](examples/dukpt_rsa.ts) for a script that loads the B
 > This project is under active development.
 > Breaking changes may still occur before a stable release.
 
-### Breaking changes in v0.8.0
-
-The decryptData APIs now return the decrypted bytes encoded, instead of the raw padded string:
-
-| API | v0.7.1 | v0.8.0 |
-| --- | --- | --- |
-| `decryptData` | string | **`ArrayBuffer`** |
-| `decryptDataAsBase64` | string | **base64 string** |
-| `decryptDataAsHex` | string | **uppercase hex string** |
-
-`decryptPin`, `decryptPinAsBase64` and `decryptPinAsHex` are unchanged and still return the PIN itself,
-because a PIN is already a digit string.
-
-Scripts that sliced the old plain text **do not throw** after the upgrade, they just stop matching:
-`ArrayBuffer.prototype.slice` returns another ArrayBuffer, so `decryptData(...).slice(0, n) === data`
-silently becomes `false`. Decode the result instead:
-
-```typescript
-const out = decryptDataAsBase64(ck, ciphertext, "", "request");
-// out === "NDAxMjM0NTY3ODkwOUQ5ODcAAAAAAAAA"
-new TextDecoder().decode(Uint8Array.fromBase64(out).slice(0, 17)); // "4012345678909D987"
-```
-
-### Breaking changes in v0.10.0: stricter input validation
-
-Inputs that moov-io silently accepts now return an error before moov-io is called.
-This applies to all variants (ArrayBuffer, Base64, Hex), and is stricter than upstream.
-Scripts that relied on the lenient behavior now fail.
-
-| Argument | Accepted | moov-io behavior | APIs |
-| --- | --- | --- | --- |
-| `action` | exactly `"request"` or `"response"` | any other value (e.g. `"Response"`) is silently processed as `"request"` | `encryptData`, `decryptData`, `generateMac` |
-| `bdk`, `ik`, `currentKey` | exactly 16 bytes | zero padded if short, truncated if long | `deriveCurrentTransactionKey`, `derivationOfInitialKey`, `encryptPin`, `decryptPin`, `encryptData`, `decryptData`, `generateMac` |
-| `ksn` | exactly 10 bytes | not validated | `deriveCurrentTransactionKey`, `derivationOfInitialKey` |
-| `iv` | empty (zero vector) or exactly 8 bytes | padded, truncated, or panics | `encryptData`, `decryptData` |
-| `ciphertext` | non-empty multiple of 8 bytes | zero padded, then decrypted into garbage | `decryptData` |
-
-Errors name the argument, e.g. `ksn must be 10 bytes, got 9` or
-`ciphertext length must be a non-zero multiple of 8 bytes, got 15`.
-
-### Breaking changes in v0.11.0: KSN length validation for the transaction counter
-
-`getDesTcFromKsn` and `generateNextDesKsn` now return an error for a `ksn` shorter than 4 bytes.
-This applies to all variants (ArrayBuffer, Base64, Hex), and is stricter than upstream.
-Scripts that relied on the lenient behavior now fail.
-
-| Argument | Accepted | moov-io behavior | APIs |
-| --- | --- | --- | --- |
-| `ksn` | at least 4 bytes | `getDesTcFromKsn` reads counter 0 below 4 bytes; `generateNextDesKsn` restarts the counter at 1 below 4 bytes and panics below 3 | `getDesTcFromKsn`, `generateNextDesKsn` |
-
-The raw `getDesTcFromKsn` now throws instead of returning `0`; the Base64 and Hex variants already returned an error for undecodable input.
-
 ## Requirements
 
 - k6 2.3.0+
@@ -199,3 +147,55 @@ Use the [xk6](https://github.com/grafana/xk6) tool to build a custom k6 binary w
 ## Contribute
 
 If you wish to contribute to this project, please start by reading the [Contributing Guidelines](CONTRIBUTING.md).
+
+### Breaking changes in v0.8.0
+
+The decryptData APIs now return the decrypted bytes encoded, instead of the raw padded string:
+
+| API | v0.7.1 | v0.8.0 |
+| --- | --- | --- |
+| `decryptData` | string | **`ArrayBuffer`** |
+| `decryptDataAsBase64` | string | **base64 string** |
+| `decryptDataAsHex` | string | **uppercase hex string** |
+
+`decryptPin`, `decryptPinAsBase64` and `decryptPinAsHex` are unchanged and still return the PIN itself,
+because a PIN is already a digit string.
+
+Scripts that sliced the old plain text **do not throw** after the upgrade, they just stop matching:
+`ArrayBuffer.prototype.slice` returns another ArrayBuffer, so `decryptData(...).slice(0, n) === data`
+silently becomes `false`. Decode the result instead:
+
+```typescript
+const out = decryptDataAsBase64(ck, ciphertext, "", "request");
+// out === "NDAxMjM0NTY3ODkwOUQ5ODcAAAAAAAAA"
+new TextDecoder().decode(Uint8Array.fromBase64(out).slice(0, 17)); // "4012345678909D987"
+```
+
+### Breaking changes in v0.10.0: stricter input validation
+
+Inputs that moov-io silently accepts now return an error before moov-io is called.
+This applies to all variants (ArrayBuffer, Base64, Hex), and is stricter than upstream.
+Scripts that relied on the lenient behavior now fail.
+
+| Argument | Accepted | moov-io behavior | APIs |
+| --- | --- | --- | --- |
+| `action` | exactly `"request"` or `"response"` | any other value (e.g. `"Response"`) is silently processed as `"request"` | `encryptData`, `decryptData`, `generateMac` |
+| `bdk`, `ik`, `currentKey` | exactly 16 bytes | zero padded if short, truncated if long | `deriveCurrentTransactionKey`, `derivationOfInitialKey`, `encryptPin`, `decryptPin`, `encryptData`, `decryptData`, `generateMac` |
+| `ksn` | exactly 10 bytes | not validated | `deriveCurrentTransactionKey`, `derivationOfInitialKey` |
+| `iv` | empty (zero vector) or exactly 8 bytes | padded, truncated, or panics | `encryptData`, `decryptData` |
+| `ciphertext` | non-empty multiple of 8 bytes | zero padded, then decrypted into garbage | `decryptData` |
+
+Errors name the argument, e.g. `ksn must be 10 bytes, got 9` or
+`ciphertext length must be a non-zero multiple of 8 bytes, got 15`.
+
+### Breaking changes in v0.11.0: KSN length validation for the transaction counter
+
+`getDesTcFromKsn` and `generateNextDesKsn` now return an error for a `ksn` shorter than 4 bytes.
+This applies to all variants (ArrayBuffer, Base64, Hex), and is stricter than upstream.
+Scripts that relied on the lenient behavior now fail.
+
+| Argument | Accepted | moov-io behavior | APIs |
+| --- | --- | --- | --- |
+| `ksn` | at least 4 bytes | `getDesTcFromKsn` reads counter 0 below 4 bytes; `generateNextDesKsn` restarts the counter at 1 below 4 bytes and panics below 3 | `getDesTcFromKsn`, `generateNextDesKsn` |
+
+The raw `getDesTcFromKsn` now throws instead of returning `0`; the Base64 and Hex variants already returned an error for undecodable input.
