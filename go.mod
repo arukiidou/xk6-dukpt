@@ -4,9 +4,9 @@ go 1.26.3
 
 require (
 	github.com/grafana/sobek v0.0.0-20260908083152-4698bc773ae7
-	github.com/moov-io/dukpt v0.0.0-20260919025356-9c6d2bf6926d
+	github.com/moov-io/dukpt v1.0.0
 	github.com/stretchr/testify v1.12.1
-	go.k6.io/k6/v2 v2.3.0 // k6 2.3.0+ for using uint8array-base64
+	go.k6.io/k6/v2 v2.3.0
 )
 
 require (
@@ -52,7 +52,7 @@ require (
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/montanaflynn/stats v0.6.6 // indirect
-	github.com/moov-io/pinblock v0.0.0-20260919022838-232187b7a17b // indirect
+	github.com/moov-io/pinblock v0.1.0 // indirect
 	github.com/mstoykov/atlas v0.0.0-20220811071828-388f114305dd // indirect
 	github.com/pjbgf/sha1cd v0.6.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -83,7 +83,7 @@ require (
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
 	golang.org/x/mod v0.41.0 // indirect
 	golang.org/x/net v0.58.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	gonum.org/v1/gonum v0.17.0 // indirect
