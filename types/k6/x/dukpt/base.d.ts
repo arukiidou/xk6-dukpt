@@ -6,8 +6,7 @@
 /**
  * k6 API for [pkg.GetDesTcFromKsn] port from moov-io,
  * gets the transaction counter from the key serial number.
- * KSN length is not validated.
- * @param ksn The key serial number.
+ * @param ksn The key serial number. Must be at least 4 bytes (stricter than moov-io, which reads counter 0).
  * @returns The 21 bit transaction counter.
  */
 export declare function getDesTcFromKsn(
@@ -18,7 +17,7 @@ export declare function getDesTcFromKsn(
  * k6 API for [pkg.GenerateNextDesKsn] port from moov-io,
  * generates the next key serial number.
  * The input is not modified.
- * @param ksn The key serial number.
+ * @param ksn The key serial number. Must be at least 4 bytes (stricter than moov-io).
  * @returns The next key serial number.
  */
 export declare function generateNextDesKsn(

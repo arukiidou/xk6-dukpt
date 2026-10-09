@@ -30,6 +30,10 @@ func TestBase64GetDesTcFromKsn(t *testing.T) {
 
 	_, err := GetDesTcFromKsnAsBase64("!!!")
 	require.Error(t, err)
+
+	// Below 4 bytes moov-io reads counter 0, which is an error here.
+	_, err = GetDesTcFromKsnAsBase64(base64.StdEncoding.EncodeToString([]byte{0x01, 0x02, 0x03}))
+	require.Error(t, err)
 }
 
 func TestBase64GenerateNextDesKsn(t *testing.T) {
@@ -46,6 +50,10 @@ func TestBase64GenerateNextDesKsn(t *testing.T) {
 	}
 
 	_, err := GenerateNextDesKsnAsBase64("!!!")
+	require.Error(t, err)
+
+	// 3 bytes would read counter 0 and silently restart it at 1.
+	_, err = GenerateNextDesKsnAsBase64(base64.StdEncoding.EncodeToString([]byte{0xE0, 0x00, 0x08}))
 	require.Error(t, err)
 
 	// Counter exhausted.

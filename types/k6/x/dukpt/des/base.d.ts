@@ -30,8 +30,8 @@ export type DukptAction = "request" | "response";
 /**
  * k6 API for [des.DerivationOfInitialKey] port from moov-io,
  * derives the initial key.
- * @param bdk The base derivation key.
- * @param ksn The key serial number.
+ * @param bdk The base derivation key. Must be exactly 16 bytes (stricter than moov-io).
+ * @param ksn The key serial number. Must be exactly 10 bytes (stricter than moov-io).
  * @returns The derived initial key.
  */
 export declare function derivationOfInitialKey(
@@ -42,8 +42,8 @@ export declare function derivationOfInitialKey(
 /**
  * k6 API for [des.DeriveCurrentTransactionKey] compat with moov-io,
  * derives the current transaction key.
- * @param ik The initial key.
- * @param ksn The key serial number.
+ * @param ik The initial key. Must be exactly 16 bytes (stricter than moov-io).
+ * @param ksn The key serial number. Must be exactly 10 bytes (stricter than moov-io).
  * @returns The derived transaction key.
  */
 export declare function deriveCurrentTransactionKey(
@@ -53,7 +53,7 @@ export declare function deriveCurrentTransactionKey(
 /**
  * k6 API for [des.EncryptPin] port from moov-io,
  * encrypts a PIN block using the DUKPT transaction key.
- * @param currentKey The transaction key.
+ * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
  * @param pin The not formatted pin string.
  * @param pan The not formatted pan string.
  * @param format The pinblock format.
@@ -69,7 +69,7 @@ export declare function encryptPin(
 /**
  * k6 API for [des.DecryptPin] port from moov-io,
  * decrypts a PIN block using the DUKPT transaction key.
- * @param currentKey The transaction key.
+ * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
  * @param ciphertext The encrypted pin block.
  * @param pan The not formatted pan string.
  * @param format The pinblock format.
@@ -85,10 +85,10 @@ export declare function decryptPin(
 /**
  * k6 API for [des.EncryptData] port from moov-io,
  * encrypts transaction data using the DUKPT transaction key.
- * @param currentKey The transaction key.
- * @param iv The initial vector, null for the default zero vector.
+ * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
+ * @param iv The initial vector, null for the default zero vector. Must be 8 bytes if given (stricter than moov-io).
  * @param plainText The transaction request data.
- * @param action The request or response action.
+ * @param action The request or response action. Must be exactly "request" or "response" (stricter than moov-io).
  * @returns The encrypted data, zero padded to a multiple of 8 bytes.
  */
 export declare function encryptData(
@@ -101,10 +101,10 @@ export declare function encryptData(
 /**
  * k6 API for [des.DecryptData] port from moov-io,
  * decrypts transaction data using the DUKPT transaction key.
- * @param currentKey The transaction key.
- * @param ciphertext The encrypted data.
- * @param iv The initial vector, null for the default zero vector.
- * @param action The request or response action.
+ * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
+ * @param ciphertext The encrypted data. Must be a non-empty multiple of 8 bytes (stricter than moov-io).
+ * @param iv The initial vector, null for the default zero vector. Must be 8 bytes if given (stricter than moov-io).
+ * @param action The request or response action. Must be exactly "request" or "response" (stricter than moov-io).
  * @returns The transaction request data, zero padded to a multiple of 8 bytes.
  */
 export declare function decryptData(
@@ -117,9 +117,9 @@ export declare function decryptData(
 /**
  * k6 API for [des.GenerateMac] port from moov-io,
  * generates a MAC using the DUKPT transaction key.
- * @param currentKey The transaction key.
+ * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
  * @param plainText The transaction request data.
- * @param action The request or response action.
+ * @param action The request or response action. Must be exactly "request" or "response" (stricter than moov-io).
  * @returns The 8 byte mac. Use the first 4 bytes as the ANSI X9.24-1 mac.
  */
 export declare function generateMac(
