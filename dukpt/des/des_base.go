@@ -81,6 +81,10 @@ func (m *module) DerivationOfInitialKey(bdk, ksn []byte) (*sobek.ArrayBuffer, er
 //   - format is pinblock format
 //     ("ISO-0", "ISO-1", "ISO-2", "ISO-3", "ISO-4", "ANSI", "ECI1", "ECI2", "ECI3", "ECI4", "VISA1", "VISA2", "VISA3", "VISA4")
 //
+// Note: This extension does not validate specific PIN block formats,
+// caller should control which format is used.
+// For example: ISO-4 (AES based) is obviously not usable with DES.
+//
 // Return Params:
 //   - result[ArrayBuffer] - cipher text
 //   - err
@@ -104,6 +108,10 @@ func (m *module) EncryptPin(currentKey []byte, pin, pan, format string) (*sobek.
 //   - pan is not formatted pan string
 //   - format is pinblock format
 //     ("ISO-0", "ISO-1", "ISO-2", "ISO-3", "ISO-4", "ANSI", "ECI1", "ECI2", "ECI3", "ECI4", "VISA1", "VISA2", "VISA3", "VISA4")
+//
+// Note: This extension does not validate specific PIN block formats,
+// caller should control which format is used.
+// For example: ISO-4 (AES based) is obviously not usable with DES.
 //
 // Return Params:
 //   - result - pin string (plain text)

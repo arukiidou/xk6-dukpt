@@ -31,6 +31,11 @@ export declare function deriveCurrentTransactionKeyAsBase64(
 /**
  * k6 API for [des.EncryptPin] port from moov-io,
  * encrypts a PIN block using the DUKPT transaction key.
+ *
+ * note: This extension does not validate specific PIN block formats,
+ * caller should control which format is used.
+ * For example: ISO-4 (AES based) is obviously not usable with DES.
+ *
  * @param currentKey The transaction key as a base64 string. Must be exactly 16 bytes (stricter than moov-io).
  * @param pin The not formatted pin string.
  * @param pan The not formatted pan string.
@@ -47,6 +52,11 @@ export declare function encryptPinAsBase64(
 /**
  * k6 API for [des.DecryptPin] port from moov-io,
  * decrypts a PIN block using the DUKPT transaction key.
+ *
+ * note: This extension does not validate specific PIN block formats,
+ * caller should control which format is used.
+ * For example: ISO-4 (AES based) is obviously not usable with DES.
+ *
  * @param currentKey The transaction key as a base64 string. Must be exactly 16 bytes (stricter than moov-io).
  * @param ciphertext The encrypted pin block as a base64 string.
  * @param pan The not formatted pan string.

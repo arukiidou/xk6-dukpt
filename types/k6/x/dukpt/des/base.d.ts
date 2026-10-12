@@ -4,7 +4,11 @@
  */
 
 /**
- * PIN block format accepted by the encryptPin APIs.
+ * PIN block format accepted by the encryptPin/decryptPin APIs.
+ *
+ * note: This extension does not validate specific PIN block formats,
+ * caller should control which format is used.
+ * For example: ISO-4 (AES based) is obviously not usable with DES. 
  */
 export type PinBlockFormat =
   | "ISO-0"
@@ -53,10 +57,14 @@ export declare function deriveCurrentTransactionKey(
 /**
  * k6 API for [des.EncryptPin] port from moov-io,
  * encrypts a PIN block using the DUKPT transaction key.
+ * 
+ * note: This extension does not validate specific PIN block formats,
+ * caller should control which format is used.
+ * For example: ISO-4 (AES based) is obviously not usable with DES.
  * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
  * @param pin The not formatted pin string.
  * @param pan The not formatted pan string.
- * @param format The pinblock format.
+ * @param format The pinblock format. 
  * @returns The cipher text.
  */
 export declare function encryptPin(
@@ -69,6 +77,9 @@ export declare function encryptPin(
 /**
  * k6 API for [des.DecryptPin] port from moov-io,
  * decrypts a PIN block using the DUKPT transaction key.
+ * note: This extension does not validate specific PIN block formats,
+ * caller should control which format is used.
+ * For example: ISO-4 (AES based) is obviously not usable with DES.
  * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
  * @param ciphertext The encrypted pin block.
  * @param pan The not formatted pan string.
