@@ -4,6 +4,8 @@
 package des
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"testing"
@@ -624,4 +626,58 @@ func TestEmptyPlainText(t *testing.T) {
 			require.EqualError(t, tt.call(), "plainText must not be empty")
 		})
 	}
+}
+
+func TestInvalidTransactionCounter(t *testing.T) {
+	m, _ := newTestModule(t)
+	ik := moovInitialSequence[0].InitialKey
+
+	// derive runs every variant on ksnHex and returns their errors.
+	derive := func(ksnHex string) map[string]error {
+		ksn := pkg.HexDecode(ksnHex)
+		return map[string]error{
+			"ArrayBuffer": errOf(m.DeriveCurrentTransactionKey(ik, ksn)),
+			"Hex":         errOf(DeriveCurrentTransactionKeyAsHex(hex.EncodeToString(ik), ksnHex)),
+			"Base64":      errOf(DeriveCurrentTransactionKeyAsBase64(base64.StdEncoding.EncodeToString(ik), base64.StdEncoding.EncodeToString(ksn))),
+		}
+	}
+
+	rejected := []struct {
+		name string
+		ksn  string
+		want string
+	}{
+		// the counter bits are clear, the rest of the KSN is not
+		{name: "zero", ksn: "FFFF9876543210E00000", want: "ksn transaction counter must not be 0"},
+		{name: "11 one-bits", ksn: "FFFF9876543210E007FF", want: "ksn transaction counter must have at most 10 one-bits, got 11"},
+		{name: "21 one-bits", ksn: "FFFF9876543210FFFFFF", want: "ksn transaction counter must have at most 10 one-bits, got 21"},
+	}
+	for _, tt := range rejected {
+		for variant, err := range derive(tt.ksn) {
+			t.Run(variant+"/"+tt.name, func(t *testing.T) {
+				require.EqualError(t, err, tt.want)
+			})
+		}
+	}
+
+	accepted := []struct {
+		name string
+		ksn  string
+	}{
+		{name: "10 one-bits", ksn: "FFFF9876543210E003FF"},
+		{name: "last counter", ksn: "FFFF9876543210FFF800"},
+	}
+	for _, tt := range accepted {
+		for variant, err := range derive(tt.ksn) {
+			t.Run(variant+"/"+tt.name, func(t *testing.T) {
+				require.NoError(t, err)
+			})
+		}
+	}
+
+	// The initial key derivation clears the counter, so counter 0 stays valid there.
+	t.Run("derivationOfInitialKey keeps counter 0", func(t *testing.T) {
+		ksn := pkg.HexDecode("FFFF9876543210E00000")
+		require.NoError(t, errOf(m.DerivationOfInitialKey(moovTestBdk, ksn)))
+	})
 }

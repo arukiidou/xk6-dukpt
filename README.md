@@ -230,3 +230,19 @@ encryptDataAsHex(ck, "", bytes.toHex(), "request");
 
 An empty `plainText` is now an error in all variants (`plainText must not be empty`), stricter than upstream:
 moov-io encrypts it into an empty ciphertext that `decryptData` rejects, and MACs it as a zero block.
+
+### Breaking changes in v0.13.0: transaction counter validation
+
+`deriveCurrentTransactionKey` now returns an error for a `ksn` whose 21 bit transaction counter no ANSI X9.24-1 originator produces.
+This applies to all variants (ArrayBuffer, Base64, Hex), and is stricter than upstream.
+Scripts that relied on the lenient behavior now fail.
+
+| Argument | Accepted | moov-io behavior | APIs |
+| --- | --- | --- | --- |
+| `ksn` transaction counter | non-zero, at most 10 one-bits | counter 0 returns the **initial key itself**; a counter with more than 10 one-bits derives a key | `deriveCurrentTransactionKey` |
+
+Errors read `ksn transaction counter must not be 0` or
+`ksn transaction counter must have at most 10 one-bits, got 11`.
+
+`derivationOfInitialKey` is unchanged: it clears the counter, so a KSN with counter 0 still derives the initial key.
+`getDesTcFromKsn` and `generateNextDesKsn` are unchanged as well; `generateNextDesKsn` from counter 0 returns counter 1.

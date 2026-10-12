@@ -12,7 +12,8 @@ import (
 // [des.DeriveCurrentTransactionKey] port from moov-io
 //
 // ik base64 string - 16 bytes initial key.
-// ksn base64 string - 10 bytes key serial number.
+// ksn base64 string - 10 bytes key serial number, its transaction counter
+// must be non-zero with at most 10 one-bits. Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result is base64 string - 16 bytes transaction key
@@ -31,6 +32,9 @@ func DeriveCurrentTransactionKeyAsBase64(ik, ksn string) (string, error) {
 		return "", err
 	}
 	if err := validateKsn(rawKsn); err != nil {
+		return "", err
+	}
+	if err := validateTransactionCounter(rawKsn); err != nil {
 		return "", err
 	}
 

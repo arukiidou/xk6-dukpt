@@ -18,7 +18,8 @@ func encodeUpperHex(b []byte) string {
 // [des.DeriveCurrentTransactionKey] port from moov-io, as a Hex variant
 //
 // ik hex string - 16 bytes initial key.
-// ksn hex string - 10 bytes key serial number.
+// ksn hex string - 10 bytes key serial number, its transaction counter
+// must be non-zero with at most 10 one-bits. Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result is uppercase hex string - 16 bytes transaction key
@@ -37,6 +38,9 @@ func DeriveCurrentTransactionKeyAsHex(ik, ksn string) (string, error) {
 		return "", err
 	}
 	if err := validateKsn(rawKsn); err != nil {
+		return "", err
+	}
+	if err := validateTransactionCounter(rawKsn); err != nil {
 		return "", err
 	}
 

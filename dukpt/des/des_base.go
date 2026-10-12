@@ -6,6 +6,7 @@ package des
 import (
 	"errors"
 	"fmt"
+	"math/bits"
 
 	"github.com/grafana/sobek"
 	"github.com/moov-io/dukpt/pkg"
@@ -29,7 +30,8 @@ func (m *module) newArrayBuffer(b []byte) *sobek.ArrayBuffer {
 //
 // Params:
 //   - ik[ArrayBuffer] is 16 bytes initial key
-//   - ksn[ArrayBuffer] is 10 bytes key serial number
+//   - ksn[ArrayBuffer] is 10 bytes key serial number, its transaction counter
+//     must be non-zero with at most 10 one-bits. Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result[ArrayBuffer] - 16 bytes transaction key
@@ -39,6 +41,9 @@ func (m *module) DeriveCurrentTransactionKey(ik, ksn []byte) (*sobek.ArrayBuffer
 		return nil, err
 	}
 	if err := validateKsn(ksn); err != nil {
+		return nil, err
+	}
+	if err := validateTransactionCounter(ksn); err != nil {
 		return nil, err
 	}
 
@@ -273,6 +278,23 @@ func validateKey(name string, key []byte) error {
 // validateKsn checks a 10 byte key serial number, moov-io does not.
 func validateKsn(ksn []byte) error {
 	return requireLen("ksn", ksn, desKsnLen)
+}
+
+// maxTcOneBits is the most one-bits an ANSI X9.24-1 originator sets in the
+// transaction counter.
+const maxTcOneBits = 10
+
+// validateTransactionCounter rejects a counter no originator produces. moov-io
+// derives from it anyway, and for counter 0 hands back the initial key itself.
+func validateTransactionCounter(ksn []byte) error {
+	tc := pkg.GetDesTcFromKsn(ksn)
+	if tc == 0 {
+		return errors.New("ksn transaction counter must not be 0")
+	}
+	if n := bits.OnesCount32(tc); n > maxTcOneBits {
+		return fmt.Errorf("ksn transaction counter must have at most %d one-bits, got %d", maxTcOneBits, n)
+	}
+	return nil
 }
 
 // validateCiphertext requires whole, non-empty CBC blocks. moov-io zero pads a
