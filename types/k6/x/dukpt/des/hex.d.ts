@@ -75,7 +75,7 @@ export declare function decryptPinAsHex(
  * encrypts transaction data using the DUKPT transaction key.
  * @param currentKey The transaction key as a hex string (case-insensitive). Must be exactly 16 bytes (stricter than moov-io).
  * @param iv The initial vector as a hex string, empty for the default zero vector. Must be 8 bytes if given (stricter than moov-io).
- * @param plainText The transaction request data. Must not be empty (stricter than moov-io).
+ * @param plainText The transaction request data as a hex string (case-insensitive). Must not be empty (stricter than moov-io).
  * @param action The request or response action. Must be exactly "request" or "response" (stricter than moov-io).
  * @returns The encrypted data as an uppercase hex string, zero padded to a multiple of 8 bytes.
  */
@@ -106,7 +106,7 @@ export declare function decryptDataAsHex(
  * k6 API for [des.GenerateMac] port from moov-io,
  * generates a MAC using the DUKPT transaction key.
  * @param currentKey The transaction key as a hex string (case-insensitive). Must be exactly 16 bytes (stricter than moov-io).
- * @param plainText The transaction request data. Must not be empty (stricter than moov-io).
+ * @param plainText The transaction request data as a hex string (case-insensitive). Must not be empty (stricter than moov-io).
  * @param action The request or response action. Must be exactly "request" or "response" (stricter than moov-io).
  * @returns The 8 byte mac as an uppercase hex string. Use the first 4 bytes (8 hex characters) as the ANSI X9.24-1 mac.
  */

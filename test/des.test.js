@@ -37,7 +37,7 @@ export default async function () {
   const dataReqEncExpected = "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"; //"FC0D53B7EA1FDA9EE68AAF2E70D9B9506229BE2AA993F04F";
   const dataResEncExpected = "H8yJr2YiLye5A4mLsryFic2/3l7Gr8wl"; //"1FCC89AF66222F27B903898BB2BC8589CDBFDE5EC6AFCC25";
 
-  const data = "4012345678909D987";
+  const data = Uint8Array.fromHex("3430313233343536373839303944393837"); //"4012345678909D987"
   // the decrypted data comes back as an ArrayBuffer, zero padded to a multiple of 8 bytes.
   const dataDecExpected = "NDAxMjM0NTY3ODkwOUQ5ODcAAAAAAAAA"; //"4012345678909D987" + 7 zero bytes;
 

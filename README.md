@@ -86,7 +86,9 @@ the **first 4 bytes** of that result, so truncate before sending it:
 ```typescript
 import { generateMacAsBase64 } from "k6/x/dukpt/des";
 
-const mac = generateMacAsBase64(ck, "4012345678909D987", "request");
+const data = new TextEncoder().encode("4012345678909D987").toBase64();
+// data === "NDAxMjM0NTY3ODkwOUQ5ODc="
+const mac = generateMacAsBase64(ck, data, "request");
 // mac === "nMx4Fz/E+2Q="  (9CCC78173FC4FB64)
 // the X9.24-1 mac is the first 4 bytes: 9CCC7817
 ```
@@ -107,7 +109,7 @@ const ik = "...";
 const ck = deriveCurrentTransactionKeyAsBase64(ik, "//+YdlQyEOAAAQ==");
 // ck === "BCZmtJGEz6No3pYo0Dl7yQ=="
 
-const mac = generateMacAsBase64(ck, "4012345678909D987", "request");
+const mac = generateMacAsBase64(ck, "NDAxMjM0NTY3ODkwOUQ5ODc=", "request"); // "4012345678909D987"
 // mac === "nMx4Fz/E+2Q="
 ```
 
@@ -127,7 +129,7 @@ const ik = "...";
 const ck = deriveCurrentTransactionKeyAsHex(ik, "FFFF9876543210E00001");
 // ck === "042666B49184CFA368DE9628D0397BC9"
 
-const mac = generateMacAsHex(ck, "4012345678909D987", "request");
+const mac = generateMacAsHex(ck, "3430313233343536373839303944393837", "request"); // "4012345678909D987"
 // mac === "9CCC78173FC4FB64"
 // the X9.24-1 mac is the first 8 hex characters: mac.slice(0, 8) === "9CCC7817"
 ```
@@ -199,3 +201,32 @@ Scripts that relied on the lenient behavior now fail.
 | `ksn` | at least 4 bytes | `getDesTcFromKsn` reads counter 0 below 4 bytes; `generateNextDesKsn` restarts the counter at 1 below 4 bytes and panics below 3 | `getDesTcFromKsn`, `generateNextDesKsn` |
 
 The raw `getDesTcFromKsn` now throws instead of returning `0`; the Base64 and Hex variants already returned an error for undecodable input.
+
+### Breaking changes in v0.12.0: plainText takes bytes
+
+`encryptData` and `generateMac` now take `plainText` as bytes, encoded the same way as every other argument.
+The signatures change in place, string input is no longer accepted.
+This makes `encryptData` the inverse of `decryptData`, so arbitrary binary data can be encrypted and MACed.
+
+| API | v0.11.0 `plainText` | v0.12.0 `plainText` |
+| --- | --- | --- |
+| `encryptData`, `generateMac` | string | **`ArrayBuffer` or `Uint8Array`** |
+| `encryptDataAsBase64`, `generateMacAsBase64` | raw string | **base64 string** |
+| `encryptDataAsHex`, `generateMacAsHex` | raw string | **hex string** (case-insensitive) |
+
+Passing a string to `encryptData` or `generateMac` throws `plainText must be an ArrayBuffer or Uint8Array`.
+A raw string passed to the Base64 and Hex variants is usually rejected as invalid encoding,
+but one that happens to be valid base64 or hex (e.g. `"1234"`) is **silently decoded** into different bytes.
+Encode the text first:
+
+```typescript
+const text = "4012345678909D987";
+const bytes = new TextEncoder().encode(text);
+
+encryptData(ck, null, bytes, "request");
+encryptDataAsBase64(ck, "", bytes.toBase64(), "request");
+encryptDataAsHex(ck, "", bytes.toHex(), "request");
+```
+
+An empty `plainText` is now an error in all variants (`plainText must not be empty`), stricter than upstream:
+moov-io encrypts it into an empty ciphertext that `decryptData` rejects, and MACs it as a zero block.

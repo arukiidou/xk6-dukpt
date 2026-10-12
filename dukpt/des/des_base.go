@@ -130,18 +130,22 @@ func DecryptPin(currentKey, ciphertext []byte, pan, format string) (string, erro
 // Params:
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
 //   - iv[ArrayBuffer] is the 8 byte initial vector, null or empty for the default zero vector
-//   - plainText is transaction request data, must not be empty.
+//   - plainText[ArrayBuffer] is transaction request data, must not be empty.
 //   - action is "request" or "response", anything else is an error.
 //     Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result[ArrayBuffer] - encrypted data, zero padded to a multiple of 8 bytes
 //   - err
-func (m *module) EncryptData(currentKey, iv []byte, plainText, action string) (*sobek.ArrayBuffer, error) {
+func (m *module) EncryptData(currentKey, iv []byte, plainText sobek.Value, action string) (*sobek.ArrayBuffer, error) {
 	if err := validateAction(action); err != nil {
 		return nil, err
 	}
 	iv, err := normalizeIV(iv)
+	if err != nil {
+		return nil, err
+	}
+	rawPlainText, err := bytesArg("plainText", plainText)
 	if err != nil {
 		return nil, err
 	}
@@ -150,11 +154,11 @@ func (m *module) EncryptData(currentKey, iv []byte, plainText, action string) (*
 		return nil, err
 	}
 
-	if err := validatePlainText(plainText); err != nil {
+	if err := validatePlainText(rawPlainText); err != nil {
 		return nil, err
 	}
 
-	ciphertext, err := des.EncryptData(currentKey, iv, plainText, action)
+	ciphertext, err := des.EncryptData(currentKey, iv, string(rawPlainText), action)
 	if err != nil {
 		return nil, err
 	}
@@ -204,26 +208,30 @@ func (m *module) DecryptData(currentKey, ciphertext, iv []byte, action string) (
 //
 // Params:
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
-//   - plainText is transaction request data, must not be empty.
+//   - plainText[ArrayBuffer] is transaction request data, must not be empty.
 //   - action is "request" or "response", anything else is an error.
 //     Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result[ArrayBuffer] - 8 bytes mac, use the first 4 bytes as the ANSI X9.24-1 mac
 //   - err
-func (m *module) GenerateMac(currentKey []byte, plainText, action string) (*sobek.ArrayBuffer, error) {
+func (m *module) GenerateMac(currentKey []byte, plainText sobek.Value, action string) (*sobek.ArrayBuffer, error) {
 	if err := validateAction(action); err != nil {
+		return nil, err
+	}
+	rawPlainText, err := bytesArg("plainText", plainText)
+	if err != nil {
 		return nil, err
 	}
 	if err := validateKey("currentKey", currentKey); err != nil {
 		return nil, err
 	}
 
-	if err := validatePlainText(plainText); err != nil {
+	if err := validatePlainText(rawPlainText); err != nil {
 		return nil, err
 	}
 
-	mac, err := des.GenerateMac(currentKey, plainText, action)
+	mac, err := des.GenerateMac(currentKey, string(rawPlainText), action)
 	if err != nil {
 		return nil, err
 	}
@@ -277,9 +285,23 @@ func validateCiphertext(ct []byte) error {
 	return nil
 }
 
+// bytesArg takes an ArrayBuffer or Uint8Array argument. sobek would turn
+// any other value, a string included, into bytes without complaint.
+func bytesArg(name string, v sobek.Value) ([]byte, error) {
+	if v != nil {
+		switch b := v.Export().(type) {
+		case sobek.ArrayBuffer:
+			return b.Bytes(), nil
+		case []byte:
+			return b, nil
+		}
+	}
+	return nil, fmt.Errorf("%s must be an ArrayBuffer or Uint8Array", name)
+}
+
 // validatePlainText rejects empty data. moov-io encrypts it into an empty
 // ciphertext that decryptData refuses, and MACs it as the zero block.
-func validatePlainText(pt string) error {
+func validatePlainText(pt []byte) error {
 	if len(pt) == 0 {
 		return errors.New("plainText must not be empty")
 	}
