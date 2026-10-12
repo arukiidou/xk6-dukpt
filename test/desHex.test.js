@@ -37,7 +37,7 @@ export default function () {
   const dataReqEncExpected = "FC0D53B7EA1FDA9EE68AAF2E70D9B9506229BE2AA993F04F";
   const dataResEncExpected = "1FCC89AF66222F27B903898BB2BC8589CDBFDE5EC6AFCC25";
 
-  const data = "4012345678909D987";
+  const data = "3430313233343536373839303944393837"; //"4012345678909D987"
   // the decrypted data comes back hex encoded, zero padded to a multiple of 8 bytes.
   const dataDecExpected = "343031323334353637383930394439383700000000000000";
 

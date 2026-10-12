@@ -33,12 +33,19 @@ func newTestModule(t *testing.T) (*module, func(*sobek.ArrayBuffer, error) []byt
 	return instance, unwrap
 }
 
+// jsBytes returns b as the JS ArrayBuffer the plainText arguments take.
+func (m *module) jsBytes(b []byte) sobek.Value {
+	return m.vu.Runtime().ToValue(m.vu.Runtime().NewArrayBuffer(b))
+}
+
 // A.4.2 Initial Sequence test values from moov-io/dukpt.
 const (
 	pin           = "1234"
 	pan           = "4012345678909"
 	formatVersion = "ISO-0"
 	data          = "4012345678909D987"
+	dataHex       = "3430313233343536373839303944393837" // data as hex
+	dataBase64    = "NDAxMjM0NTY3ODkwOUQ5ODc="           // data as base64
 )
 
 type SequenceItem struct {
@@ -148,13 +155,13 @@ func TestMoovCompatibility(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, pin, decPin)
 
-			reqEnc := unwrap(m.EncryptData(ck, nil, data, pkg.ActionRequest))
+			reqEnc := unwrap(m.EncryptData(ck, nil, m.jsBytes([]byte(data)), pkg.ActionRequest))
 			require.Equal(t, moov.DataReqEnc, reqEnc)
 
 			decReq := unwrap(m.DecryptData(ck, reqEnc, nil, pkg.ActionRequest))
 			require.Equal(t, data, string(decReq[:len(data)]))
 
-			resEnc := unwrap(m.EncryptData(ck, nil, data, pkg.ActionResponse))
+			resEnc := unwrap(m.EncryptData(ck, nil, m.jsBytes([]byte(data)), pkg.ActionResponse))
 			require.Equal(t, moov.DataResEnc, resEnc)
 
 			decRes := unwrap(m.DecryptData(ck, resEnc, nil, pkg.ActionResponse))
@@ -164,13 +171,13 @@ func TestMoovCompatibility(t *testing.T) {
 			decEmptyIV := unwrap(m.DecryptData(ck, reqEnc, []byte{}, pkg.ActionRequest))
 			require.Equal(t, decReq, decEmptyIV)
 
-			reqMac := unwrap(m.GenerateMac(ck, data, pkg.ActionRequest))
+			reqMac := unwrap(m.GenerateMac(ck, m.jsBytes([]byte(data)), pkg.ActionRequest))
 			desReqMac, err := des.GenerateMac(desCk, data, pkg.ActionRequest)
 			require.NoError(t, err)
 			require.Equal(t, desReqMac, reqMac)
 			require.Equal(t, moov.RequestMac, reqMac)
 
-			resMac := unwrap(m.GenerateMac(ck, data, pkg.ActionResponse))
+			resMac := unwrap(m.GenerateMac(ck, m.jsBytes([]byte(data)), pkg.ActionResponse))
 			desResMac, err := des.GenerateMac(desCk, data, pkg.ActionResponse)
 			require.NoError(t, err)
 			require.Equal(t, desResMac, resMac)
@@ -207,7 +214,7 @@ func TestIVLength(t *testing.T) {
 			m, unwrap := newTestModule(t)
 
 			if tt.block == nil {
-				_, err := m.EncryptData(currentKey, tt.iv, data, pkg.ActionRequest)
+				_, err := m.EncryptData(currentKey, tt.iv, m.jsBytes([]byte(data)), pkg.ActionRequest)
 				require.ErrorContains(t, err, fmt.Sprintf("iv must be 8 bytes, got %d", len(tt.iv)))
 
 				_, err = m.DecryptData(currentKey, nil, tt.iv, pkg.ActionRequest)
@@ -215,8 +222,8 @@ func TestIVLength(t *testing.T) {
 				return
 			}
 
-			ciphertext := unwrap(m.EncryptData(currentKey, tt.iv, data, pkg.ActionRequest))
-			require.Equal(t, unwrap(m.EncryptData(currentKey, tt.block, data, pkg.ActionRequest)), ciphertext)
+			ciphertext := unwrap(m.EncryptData(currentKey, tt.iv, m.jsBytes([]byte(data)), pkg.ActionRequest))
+			require.Equal(t, unwrap(m.EncryptData(currentKey, tt.block, m.jsBytes([]byte(data)), pkg.ActionRequest)), ciphertext)
 
 			plaintext := unwrap(m.DecryptData(currentKey, ciphertext, tt.iv, pkg.ActionRequest))
 			require.Equal(t, data, string(plaintext[:len(data)]))
@@ -293,13 +300,13 @@ func TestRawInputsNotModified(t *testing.T) {
 			require.NoError(t, err)
 		}},
 		{name: "EncryptData", inputs: [][]byte{seq.CurrentKey, iv}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
-			unwrap(m.EncryptData(seq.CurrentKey, iv, data, pkg.ActionRequest))
+			unwrap(m.EncryptData(seq.CurrentKey, iv, m.jsBytes([]byte(data)), pkg.ActionRequest))
 		}},
 		{name: "DecryptData", inputs: [][]byte{seq.CurrentKey, seq.DataReqEnc, iv}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
 			unwrap(m.DecryptData(seq.CurrentKey, seq.DataReqEnc, iv, pkg.ActionRequest))
 		}},
 		{name: "GenerateMac", inputs: [][]byte{seq.CurrentKey}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
-			unwrap(m.GenerateMac(seq.CurrentKey, data, pkg.ActionRequest))
+			unwrap(m.GenerateMac(seq.CurrentKey, m.jsBytes([]byte(data)), pkg.ActionRequest))
 		}},
 	}
 
@@ -333,25 +340,25 @@ func TestInvalidAction(t *testing.T) {
 		t.Run(fmt.Sprintf("%q", action), func(t *testing.T) {
 			m, _ := newTestModule(t)
 
-			_, err := m.EncryptData(key, nil, "data", action)
+			_, err := m.EncryptData(key, nil, m.jsBytes([]byte("data")), action)
 			require.Error(t, err)
 			_, err = m.DecryptData(key, make([]byte, 8), nil, action)
 			require.Error(t, err)
-			_, err = m.GenerateMac(key, "data", action)
+			_, err = m.GenerateMac(key, m.jsBytes([]byte("data")), action)
 			require.Error(t, err)
 
-			_, err = EncryptDataAsHex(hexKey, "", "data", action)
+			_, err = EncryptDataAsHex(hexKey, "", "64617461", action)
 			require.Error(t, err)
 			_, err = DecryptDataAsHex(hexKey, "0000000000000000", "", action)
 			require.Error(t, err)
-			_, err = GenerateMacAsHex(hexKey, "data", action)
+			_, err = GenerateMacAsHex(hexKey, "64617461", action)
 			require.Error(t, err)
 
-			_, err = EncryptDataAsBase64(b64Key, "", "data", action)
+			_, err = EncryptDataAsBase64(b64Key, "", "ZGF0YQ==", action)
 			require.Error(t, err)
 			_, err = DecryptDataAsBase64(b64Key, "AAAAAAAAAAA=", "", action)
 			require.Error(t, err)
-			_, err = GenerateMacAsBase64(b64Key, "data", action)
+			_, err = GenerateMacAsBase64(b64Key, "ZGF0YQ==", action)
 			require.Error(t, err)
 		})
 	}
@@ -404,7 +411,7 @@ func TestInvalidKeyAndKsnLength(t *testing.T) {
 			},
 			{
 				name: "encryptData",
-				call: func() error { return errOf(m.EncryptData(shortKey, nil, "data", act)) },
+				call: func() error { return errOf(m.EncryptData(shortKey, nil, m.jsBytes([]byte("data")), act)) },
 				want: "currentKey must be 16 bytes, got 15",
 			},
 			{
@@ -414,7 +421,7 @@ func TestInvalidKeyAndKsnLength(t *testing.T) {
 			},
 			{
 				name: "generateMac",
-				call: func() error { return errOf(m.GenerateMac(shortKey, "data", act)) },
+				call: func() error { return errOf(m.GenerateMac(shortKey, m.jsBytes([]byte("data")), act)) },
 				want: "currentKey must be 16 bytes, got 15",
 			},
 			{
@@ -459,7 +466,7 @@ func TestInvalidKeyAndKsnLength(t *testing.T) {
 			},
 			{
 				name: "encryptData",
-				call: func() error { return errOf(EncryptDataAsHex(hexShortKey, "", "data", act)) },
+				call: func() error { return errOf(EncryptDataAsHex(hexShortKey, "", "64617461", act)) },
 				want: "currentKey must be 16 bytes, got 15",
 			},
 			{
@@ -469,7 +476,7 @@ func TestInvalidKeyAndKsnLength(t *testing.T) {
 			},
 			{
 				name: "generateMac",
-				call: func() error { return errOf(GenerateMacAsHex(hexShortKey, "data", act)) },
+				call: func() error { return errOf(GenerateMacAsHex(hexShortKey, "64617461", act)) },
 				want: "currentKey must be 16 bytes, got 15",
 			},
 		})
@@ -509,7 +516,7 @@ func TestInvalidKeyAndKsnLength(t *testing.T) {
 			},
 			{
 				name: "encryptData",
-				call: func() error { return errOf(EncryptDataAsBase64(b64ShortKey, "", "data", act)) },
+				call: func() error { return errOf(EncryptDataAsBase64(b64ShortKey, "", "ZGF0YQ==", act)) },
 				want: "currentKey must be 16 bytes, got 15",
 			},
 			{
@@ -519,7 +526,7 @@ func TestInvalidKeyAndKsnLength(t *testing.T) {
 			},
 			{
 				name: "generateMac",
-				call: func() error { return errOf(GenerateMacAsBase64(b64ShortKey, "data", act)) },
+				call: func() error { return errOf(GenerateMacAsBase64(b64ShortKey, "ZGF0YQ==", act)) },
 				want: "currentKey must be 16 bytes, got 15",
 			},
 		})
@@ -605,8 +612,8 @@ func TestEmptyPlainText(t *testing.T) {
 		name string
 		call func() error
 	}{
-		{name: "ArrayBuffer/encryptData", call: func() error { return errOf(m.EncryptData(key, nil, "", act)) }},
-		{name: "ArrayBuffer/generateMac", call: func() error { return errOf(m.GenerateMac(key, "", act)) }},
+		{name: "ArrayBuffer/encryptData", call: func() error { return errOf(m.EncryptData(key, nil, m.jsBytes(nil), act)) }},
+		{name: "ArrayBuffer/generateMac", call: func() error { return errOf(m.GenerateMac(key, m.jsBytes(nil), act)) }},
 		{name: "Hex/encryptData", call: func() error { return errOf(EncryptDataAsHex(hexKey, "", "", act)) }},
 		{name: "Hex/generateMac", call: func() error { return errOf(GenerateMacAsHex(hexKey, "", act)) }},
 		{name: "Base64/encryptData", call: func() error { return errOf(EncryptDataAsBase64(b64Key, "", "", act)) }},

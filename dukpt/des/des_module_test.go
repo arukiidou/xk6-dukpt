@@ -29,6 +29,8 @@ func Test_module(t *testing.T) { //nolint:tparallel
 		jsKsn = `Uint8Array.fromBase64("//+YdlQyEOAAAQ==")`
 		jsIk  = `Uint8Array.fromBase64("asKS+qExW02FirOj19WTOg==")`
 		jsCk  = `Uint8Array.fromBase64("BCZmtJGEz6No3pYo0Dl7yQ==")`
+		// "4012345678909D987"
+		jsData = `Uint8Array.fromHex("3430313233343536373839303944393837")`
 	)
 
 	tests := []struct {
@@ -40,30 +42,39 @@ func Test_module(t *testing.T) { //nolint:tparallel
 		{name: "derivationOfInitialKey(bdk, ksn) returns an ArrayBuffer", check: `mod.derivationOfInitialKey(` + jsBdk + `, ` + jsKsn + `) instanceof ArrayBuffer`},
 		{name: "encryptPin(currentKey, pin, pan, format)", check: `new Uint8Array(mod.encryptPin(` + jsCk + `, "1234", "4012345678909", "ISO-0")).toBase64() === "G5wYReuZOno="`},
 		{name: "decryptPin(currentKey, ciphertext, pan, format)", check: `mod.decryptPin(` + jsCk + `, Uint8Array.fromBase64("G5wYReuZOno="), "4012345678909", "ISO-0") === "1234"`},
-		{name: "encryptData(currentKey, null, plainText, action)", check: `new Uint8Array(mod.encryptData(` + jsCk + `, null, "4012345678909D987", "request")).toBase64() === "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"`},
-		{name: "encryptData(currentKey, iv, plainText, action)", check: `new Uint8Array(mod.encryptData(` + jsCk + `, Uint8Array.fromHex("0000000000000000"), "4012345678909D987", "request")).toBase64() === "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"`},
-		{name: "encryptData(currentKey, shortIv, plainText, action) throws", check: `(() => { try { mod.encryptData(` + jsCk + `, Uint8Array.fromHex("0102"), "4012345678909D987", "request"); return false } catch (e) { return String(e).includes("iv must be 8 bytes, got 2") } })()`},
+		{name: "encryptData(currentKey, null, plainText, action)", check: `new Uint8Array(mod.encryptData(` + jsCk + `, null, ` + jsData + `, "request")).toBase64() === "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"`},
+		{name: "encryptData(currentKey, iv, plainText, action)", check: `new Uint8Array(mod.encryptData(` + jsCk + `, Uint8Array.fromHex("0000000000000000"), ` + jsData + `, "request")).toBase64() === "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"`},
+		{name: "encryptData(currentKey, null, plainText, action) accepts an ArrayBuffer", check: `new Uint8Array(mod.encryptData(` + jsCk + `, null, ` + jsData + `.buffer, "request")).toBase64() === "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"`},
+		{name: "encryptData(currentKey, null, string, action) throws", check: `(() => { try { mod.encryptData(` + jsCk + `, null, "4012345678909D987", "request"); return false } catch (e) { return String(e).includes("plainText must be an ArrayBuffer or Uint8Array") } })()`},
+		{name: "generateMac(currentKey, string, action) throws", check: `(() => { try { mod.generateMac(` + jsCk + `, "4012345678909D987", "request"); return false } catch (e) { return String(e).includes("plainText must be an ArrayBuffer or Uint8Array") } })()`},
+		{name: "encryptData(currentKey, null, subarray, action) honors the view offset", check: `new Uint8Array(mod.encryptData(` + jsCk + `, null, Uint8Array.fromHex("FF3430313233343536373839303944393837FF").subarray(1, 18), "request")).toBase64() === "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"`},
+		{name: "encryptData(currentKey, null, Uint16Array, action) throws", check: `(() => { try { mod.encryptData(` + jsCk + `, null, new Uint16Array(9), "request"); return false } catch (e) { return String(e).includes("plainText must be an ArrayBuffer or Uint8Array") } })()`},
+		{name: "generateMac(currentKey, null, action) throws", check: `(() => { try { mod.generateMac(` + jsCk + `, null, "request"); return false } catch (e) { return String(e).includes("plainText must be an ArrayBuffer or Uint8Array") } })()`},
+		{name: "encryptData(currentKey, null, decryptData(...), action) round trips", check: `(() => { const ct = Uint8Array.fromBase64("/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"); const pt = mod.decryptData(` + jsCk + `, ct, null, "request"); return new Uint8Array(mod.encryptData(` + jsCk + `, null, pt, "request")).toBase64() === ct.toBase64() })()`},
+		{name: "encryptDataAsHex(currentKey, iv, decryptDataAsHex(...), action) round trips", check: `mod.encryptDataAsHex("042666B49184CFA368DE9628D0397BC9", "", mod.decryptDataAsHex("042666B49184CFA368DE9628D0397BC9", "FC0D53B7EA1FDA9EE68AAF2E70D9B9506229BE2AA993F04F", "", "request"), "request") === "FC0D53B7EA1FDA9EE68AAF2E70D9B9506229BE2AA993F04F"`},
+		{name: "encryptDataAsBase64(currentKey, iv, decryptDataAsBase64(...), action) round trips", check: `mod.encryptDataAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "", mod.decryptDataAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP", "", "request"), "request") === "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"`},
+		{name: "encryptData(currentKey, shortIv, plainText, action) throws", check: `(() => { try { mod.encryptData(` + jsCk + `, Uint8Array.fromHex("0102"), ` + jsData + `, "request"); return false } catch (e) { return String(e).includes("iv must be 8 bytes, got 2") } })()`},
 		{name: "decryptData(currentKey, ciphertext, null, action)", check: `new Uint8Array(mod.decryptData(` + jsCk + `, Uint8Array.fromBase64("/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"), null, "request")).toBase64() === "NDAxMjM0NTY3ODkwOUQ5ODcAAAAAAAAA"`},
 		{name: "decryptData(currentKey, ciphertext, null, action) returns an ArrayBuffer", check: `mod.decryptData(` + jsCk + `, Uint8Array.fromBase64("/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"), null, "request") instanceof ArrayBuffer`},
-		{name: `generateMac(currentKey, plainText, "request")`, check: `new Uint8Array(mod.generateMac(` + jsCk + `, "4012345678909D987", "request")).toBase64() === "nMx4Fz/E+2Q="`},
-		{name: `generateMac(currentKey, plainText, "response")`, check: `new Uint8Array(mod.generateMac(` + jsCk + `, "4012345678909D987", "response")).toBase64() === "IDZCI8H/APo="`},
+		{name: `generateMac(currentKey, plainText, "request")`, check: `new Uint8Array(mod.generateMac(` + jsCk + `, ` + jsData + `, "request")).toBase64() === "nMx4Fz/E+2Q="`},
+		{name: `generateMac(currentKey, plainText, "response")`, check: `new Uint8Array(mod.generateMac(` + jsCk + `, ` + jsData + `, "response")).toBase64() === "IDZCI8H/APo="`},
 		{name: "derivationOfInitialKey(bdk, ksn) keeps the input", check: `(() => { const bdk = ` + jsBdk + `; mod.derivationOfInitialKey(bdk, ` + jsKsn + `); return bdk.toBase64() === "ASNFZ4mrze/+3LqYdlQyEA==" })()`},
 		{name: "derivationOfInitialKeyAsBase64(bdk, ksn)", check: `mod.derivationOfInitialKeyAsBase64("ASNFZ4mrze/+3LqYdlQyEA==", "//+YdlQyEOAAAQ==") === "asKS+qExW02FirOj19WTOg=="`},
 		{name: "deriveCurrentTransactionKeyAsBase64(ik, ksn)", check: `mod.deriveCurrentTransactionKeyAsBase64("asKS+qExW02FirOj19WTOg==", "//+YdlQyEOAAAQ==") === "BCZmtJGEz6No3pYo0Dl7yQ=="`},
 		{name: "encryptPinAsBase64(currentKey, pin, pan, format)", check: `mod.encryptPinAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "1234", "4012345678909", "ISO-0") === "G5wYReuZOno="`},
 		{name: "decryptPinAsBase64(currentKey, ciphertext, pan, format)", check: `mod.decryptPinAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "G5wYReuZOno=", "4012345678909", "ISO-0") === "1234"`},
-		{name: "encryptDataAsBase64(currentKey, iv, plainText, action)", check: `mod.encryptDataAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "", "4012345678909D987", "request") === "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"`},
+		{name: "encryptDataAsBase64(currentKey, iv, plainText, action)", check: `mod.encryptDataAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "", "NDAxMjM0NTY3ODkwOUQ5ODc=", "request") === "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP"`},
 		{name: "decryptDataAsBase64(currentKey, ciphertext, iv, action)", check: `mod.decryptDataAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP", "", "request") === "NDAxMjM0NTY3ODkwOUQ5ODcAAAAAAAAA"`},
-		{name: `generateMacAsBase64(currentKey, plainText, "request")`, check: `mod.generateMacAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "4012345678909D987", "request") === "nMx4Fz/E+2Q="`},
-		{name: `generateMacAsBase64(currentKey, plainText, "response")`, check: `mod.generateMacAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "4012345678909D987", "response") === "IDZCI8H/APo="`},
+		{name: `generateMacAsBase64(currentKey, plainText, "request")`, check: `mod.generateMacAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "NDAxMjM0NTY3ODkwOUQ5ODc=", "request") === "nMx4Fz/E+2Q="`},
+		{name: `generateMacAsBase64(currentKey, plainText, "response")`, check: `mod.generateMacAsBase64("BCZmtJGEz6No3pYo0Dl7yQ==", "NDAxMjM0NTY3ODkwOUQ5ODc=", "response") === "IDZCI8H/APo="`},
 		{name: "derivationOfInitialKeyAsHex(bdk, ksn)", check: `mod.derivationOfInitialKeyAsHex("0123456789ABCDEFFEDCBA9876543210", "FFFF9876543210E00001") === "6AC292FAA1315B4D858AB3A3D7D5933A"`},
 		{name: "deriveCurrentTransactionKeyAsHex(ik, ksn)", check: `mod.deriveCurrentTransactionKeyAsHex("6AC292FAA1315B4D858AB3A3D7D5933A", "FFFF9876543210E00001") === "042666B49184CFA368DE9628D0397BC9"`},
 		{name: "encryptPinAsHex(currentKey, pin, pan, format)", check: `mod.encryptPinAsHex("042666B49184CFA368DE9628D0397BC9", "1234", "4012345678909", "ISO-0") === "1B9C1845EB993A7A"`},
 		{name: "decryptPinAsHex(currentKey, ciphertext, pan, format)", check: `mod.decryptPinAsHex("042666B49184CFA368DE9628D0397BC9", "1B9C1845EB993A7A", "4012345678909", "ISO-0") === "1234"`},
-		{name: "encryptDataAsHex(currentKey, iv, plainText, action)", check: `mod.encryptDataAsHex("042666B49184CFA368DE9628D0397BC9", "", "4012345678909D987", "request") === "FC0D53B7EA1FDA9EE68AAF2E70D9B9506229BE2AA993F04F"`},
+		{name: "encryptDataAsHex(currentKey, iv, plainText, action)", check: `mod.encryptDataAsHex("042666B49184CFA368DE9628D0397BC9", "", "3430313233343536373839303944393837", "request") === "FC0D53B7EA1FDA9EE68AAF2E70D9B9506229BE2AA993F04F"`},
 		{name: "decryptDataAsHex(currentKey, ciphertext, iv, action)", check: `mod.decryptDataAsHex("042666B49184CFA368DE9628D0397BC9", "FC0D53B7EA1FDA9EE68AAF2E70D9B9506229BE2AA993F04F", "", "request") === "343031323334353637383930394439383700000000000000"`},
-		{name: `generateMacAsHex(currentKey, plainText, "request")`, check: `mod.generateMacAsHex("042666B49184CFA368DE9628D0397BC9", "4012345678909D987", "request") === "9CCC78173FC4FB64"`},
-		{name: `generateMacAsHex(currentKey, plainText, "response")`, check: `mod.generateMacAsHex("042666B49184CFA368DE9628D0397BC9", "4012345678909D987", "response") === "20364223C1FF00FA"`},
+		{name: `generateMacAsHex(currentKey, plainText, "request")`, check: `mod.generateMacAsHex("042666B49184CFA368DE9628D0397BC9", "3430313233343536373839303944393837", "request") === "9CCC78173FC4FB64"`},
+		{name: `generateMacAsHex(currentKey, plainText, "response")`, check: `mod.generateMacAsHex("042666B49184CFA368DE9628D0397BC9", "3430313233343536373839303944393837", "response") === "20364223C1FF00FA"`},
 	}
 	for _, tt := range tests { //nolint:paralleltest
 		t.Run(tt.name, func(t *testing.T) {

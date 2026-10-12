@@ -141,7 +141,7 @@ func DecryptPinAsBase64(currentKey, ciphertext, pan, format string) (string, err
 //
 // currentKey base64 string - 16 bytes transaction key.
 // iv base64 string - initial vector, empty for the default zero vector.
-// plainText is transaction request data, must not be empty.
+// plainText base64 string - transaction request data, must not be empty.
 // action is "request" or "response", anything else is an error.
 // Stricter than upstream (moov-io).
 //
@@ -164,16 +164,20 @@ func EncryptDataAsBase64(currentKey, iv, plainText, action string) (string, erro
 	if err != nil {
 		return "", err
 	}
+	rawPlainText, err := base64.StdEncoding.DecodeString(plainText)
+	if err != nil {
+		return "", err
+	}
 
 	if err := validateKey("currentKey", rawCurrentKey); err != nil {
 		return "", err
 	}
 
-	if err := validatePlainText(plainText); err != nil {
+	if err := validatePlainText(rawPlainText); err != nil {
 		return "", err
 	}
 
-	ciphertext, err := des.EncryptData(rawCurrentKey, nIv, plainText, action)
+	ciphertext, err := des.EncryptData(rawCurrentKey, nIv, string(rawPlainText), action)
 	if err != nil {
 		return "", err
 	}
@@ -231,7 +235,7 @@ func DecryptDataAsBase64(currentKey, ciphertext, iv, action string) (string, err
 // [des.GenerateMac] port from moov-io
 //
 // currentKey base64 string - 16 bytes transaction key.
-// plainText is transaction request data, must not be empty.
+// plainText base64 string - transaction request data, must not be empty.
 // action is "request" or "response", anything else is an error.
 // Stricter than upstream (moov-io).
 //
@@ -246,16 +250,20 @@ func GenerateMacAsBase64(currentKey, plainText, action string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	rawPlainText, err := base64.StdEncoding.DecodeString(plainText)
+	if err != nil {
+		return "", err
+	}
 
 	if err := validateKey("currentKey", rawCurrentKey); err != nil {
 		return "", err
 	}
 
-	if err := validatePlainText(plainText); err != nil {
+	if err := validatePlainText(rawPlainText); err != nil {
 		return "", err
 	}
 
-	mac, err := des.GenerateMac(rawCurrentKey, plainText, action)
+	mac, err := des.GenerateMac(rawCurrentKey, string(rawPlainText), action)
 	if err != nil {
 		return "", err
 	}

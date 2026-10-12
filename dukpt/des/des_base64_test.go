@@ -74,7 +74,7 @@ func TestBase64MoovCompatibility(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, pin, decPin)
 
-			reqEnc, err := EncryptDataAsBase64(ck, "", data, pkg.ActionRequest)
+			reqEnc, err := EncryptDataAsBase64(ck, "", dataBase64, pkg.ActionRequest)
 			require.NoError(t, err)
 			require.Equal(t, b64.DataReqEnc, reqEnc)
 
@@ -84,7 +84,7 @@ func TestBase64MoovCompatibility(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, data, string(rawDecReq[:len(data)]))
 
-			resEnc, err := EncryptDataAsBase64(ck, "", data, pkg.ActionResponse)
+			resEnc, err := EncryptDataAsBase64(ck, "", dataBase64, pkg.ActionResponse)
 			require.NoError(t, err)
 			require.Equal(t, b64.DataResEnc, resEnc)
 
@@ -94,11 +94,11 @@ func TestBase64MoovCompatibility(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, data, string(rawDecRes[:len(data)]))
 
-			reqMac, err := GenerateMacAsBase64(ck, data, pkg.ActionRequest)
+			reqMac, err := GenerateMacAsBase64(ck, dataBase64, pkg.ActionRequest)
 			require.NoError(t, err)
 			require.Equal(t, b64.RequestMac, reqMac)
 
-			resMac, err := GenerateMacAsBase64(ck, data, pkg.ActionResponse)
+			resMac, err := GenerateMacAsBase64(ck, dataBase64, pkg.ActionResponse)
 			require.NoError(t, err)
 			require.Equal(t, b64.ResponseMac, resMac)
 		})
@@ -148,11 +148,16 @@ func TestBase64InvalidInput(t *testing.T) {
 			return err
 		}},
 		{name: "invalid current key for encrypt data", call: func() error {
-			_, err := EncryptDataAsBase64(invalid, "", data, pkg.ActionRequest)
+			_, err := EncryptDataAsBase64(invalid, "", dataBase64, pkg.ActionRequest)
 			return err
 		}},
 		{name: "invalid iv character for encrypt data", call: func() error {
-			_, err := EncryptDataAsBase64(b64.CurrentKey, invalid, data, pkg.ActionRequest)
+			_, err := EncryptDataAsBase64(b64.CurrentKey, invalid, dataBase64, pkg.ActionRequest)
+			return err
+		}},
+		{name: "invalid plain text for encrypt data", call: func() error {
+			// The raw string the old API took is not valid base64.
+			_, err := EncryptDataAsBase64(b64.CurrentKey, "", data, pkg.ActionRequest)
 			return err
 		}},
 		{name: "invalid current key for decrypt data", call: func() error {
@@ -168,7 +173,11 @@ func TestBase64InvalidInput(t *testing.T) {
 			return err
 		}},
 		{name: "invalid current key for generate mac", call: func() error {
-			_, err := GenerateMacAsBase64(invalid, data, pkg.ActionRequest)
+			_, err := GenerateMacAsBase64(invalid, dataBase64, pkg.ActionRequest)
+			return err
+		}},
+		{name: "invalid plain text for generate mac", call: func() error {
+			_, err := GenerateMacAsBase64(b64.CurrentKey, data, pkg.ActionRequest)
 			return err
 		}},
 	}
@@ -246,7 +255,7 @@ func TestBase64IVLength(t *testing.T) {
 			if tt.block == "" {
 				wantErr := fmt.Sprintf("iv must be %d bytes, got %d", desBlockLen, tt.wantLen)
 
-				_, err := EncryptDataAsBase64(b64.CurrentKey, tt.iv, data, pkg.ActionRequest)
+				_, err := EncryptDataAsBase64(b64.CurrentKey, tt.iv, dataBase64, pkg.ActionRequest)
 				require.ErrorContains(t, err, wantErr)
 
 				_, err = DecryptDataAsBase64(b64.CurrentKey, b64.DataReqEnc, tt.iv, pkg.ActionRequest)
@@ -254,9 +263,9 @@ func TestBase64IVLength(t *testing.T) {
 				return
 			}
 
-			ciphertext, err := EncryptDataAsBase64(b64.CurrentKey, tt.iv, data, pkg.ActionRequest)
+			ciphertext, err := EncryptDataAsBase64(b64.CurrentKey, tt.iv, dataBase64, pkg.ActionRequest)
 			require.NoError(t, err)
-			withBlock, err := EncryptDataAsBase64(b64.CurrentKey, tt.block, data, pkg.ActionRequest)
+			withBlock, err := EncryptDataAsBase64(b64.CurrentKey, tt.block, dataBase64, pkg.ActionRequest)
 			require.NoError(t, err)
 			require.Equal(t, withBlock, ciphertext)
 

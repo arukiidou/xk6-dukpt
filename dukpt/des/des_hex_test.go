@@ -74,7 +74,7 @@ func TestHexMoovCompatibility(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, pin, decPin)
 
-			reqEnc, err := EncryptDataAsHex(ck, "", data, pkg.ActionRequest)
+			reqEnc, err := EncryptDataAsHex(ck, "", dataHex, pkg.ActionRequest)
 			require.NoError(t, err)
 			require.Equal(t, hx.DataReqEnc, reqEnc)
 
@@ -82,7 +82,7 @@ func TestHexMoovCompatibility(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, encodeUpperHex([]byte(data)), decReq[:len(data)*2])
 
-			resEnc, err := EncryptDataAsHex(ck, "", data, pkg.ActionResponse)
+			resEnc, err := EncryptDataAsHex(ck, "", dataHex, pkg.ActionResponse)
 			require.NoError(t, err)
 			require.Equal(t, hx.DataResEnc, resEnc)
 
@@ -90,11 +90,11 @@ func TestHexMoovCompatibility(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, encodeUpperHex([]byte(data)), decRes[:len(data)*2])
 
-			reqMac, err := GenerateMacAsHex(ck, data, pkg.ActionRequest)
+			reqMac, err := GenerateMacAsHex(ck, dataHex, pkg.ActionRequest)
 			require.NoError(t, err)
 			require.Equal(t, hx.RequestMac, reqMac)
 
-			resMac, err := GenerateMacAsHex(ck, data, pkg.ActionResponse)
+			resMac, err := GenerateMacAsHex(ck, dataHex, pkg.ActionResponse)
 			require.NoError(t, err)
 			require.Equal(t, hx.ResponseMac, resMac)
 		})
@@ -151,11 +151,16 @@ func TestHexInvalidInput(t *testing.T) {
 			return err
 		}},
 		{name: "invalid current key for encrypt data", call: func() error {
-			_, err := EncryptDataAsHex("ZZ", "", data, pkg.ActionRequest)
+			_, err := EncryptDataAsHex("ZZ", "", dataHex, pkg.ActionRequest)
 			return err
 		}},
 		{name: "invalid iv character for encrypt data", call: func() error {
-			_, err := EncryptDataAsHex(hx.CurrentKey, "XY", data, pkg.ActionRequest)
+			_, err := EncryptDataAsHex(hx.CurrentKey, "XY", dataHex, pkg.ActionRequest)
+			return err
+		}},
+		{name: "invalid plain text for encrypt data", call: func() error {
+			// The raw string the old API took is not valid hex.
+			_, err := EncryptDataAsHex(hx.CurrentKey, "", data, pkg.ActionRequest)
 			return err
 		}},
 		{name: "invalid current key for decrypt data", call: func() error {
@@ -171,7 +176,11 @@ func TestHexInvalidInput(t *testing.T) {
 			return err
 		}},
 		{name: "invalid current key for generate mac", call: func() error {
-			_, err := GenerateMacAsHex("ZZ", data, pkg.ActionRequest)
+			_, err := GenerateMacAsHex("ZZ", dataHex, pkg.ActionRequest)
+			return err
+		}},
+		{name: "invalid plain text for generate mac", call: func() error {
+			_, err := GenerateMacAsHex(hx.CurrentKey, data, pkg.ActionRequest)
 			return err
 		}},
 	}
@@ -242,7 +251,7 @@ func TestHexIVLength(t *testing.T) {
 			if tt.block == "" {
 				wantErr := fmt.Sprintf("iv must be %d bytes, got %d", desBlockLen, len(tt.iv)/2)
 
-				_, err := EncryptDataAsHex(hx.CurrentKey, tt.iv, data, pkg.ActionRequest)
+				_, err := EncryptDataAsHex(hx.CurrentKey, tt.iv, dataHex, pkg.ActionRequest)
 				require.ErrorContains(t, err, wantErr)
 
 				_, err = DecryptDataAsHex(hx.CurrentKey, hx.DataReqEnc, tt.iv, pkg.ActionRequest)
@@ -250,9 +259,9 @@ func TestHexIVLength(t *testing.T) {
 				return
 			}
 
-			ciphertext, err := EncryptDataAsHex(hx.CurrentKey, tt.iv, data, pkg.ActionRequest)
+			ciphertext, err := EncryptDataAsHex(hx.CurrentKey, tt.iv, dataHex, pkg.ActionRequest)
 			require.NoError(t, err)
-			withBlock, err := EncryptDataAsHex(hx.CurrentKey, tt.block, data, pkg.ActionRequest)
+			withBlock, err := EncryptDataAsHex(hx.CurrentKey, tt.block, dataHex, pkg.ActionRequest)
 			require.NoError(t, err)
 			require.Equal(t, withBlock, ciphertext)
 
