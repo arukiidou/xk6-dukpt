@@ -47,7 +47,7 @@ export declare function derivationOfInitialKey(
  * k6 API for [des.DeriveCurrentTransactionKey] compat with moov-io,
  * derives the current transaction key.
  * @param ik The initial key. Must be exactly 16 bytes (stricter than moov-io).
- * @param ksn The key serial number. Must be exactly 10 bytes (stricter than moov-io).
+ * @param ksn The key serial number. Must be exactly 10 bytes (stricter than moov-io). Its transaction counter must be non-zero with at most 10 one-bits (stricter than moov-io).
  * @returns The derived transaction key.
  */
 export declare function deriveCurrentTransactionKey(

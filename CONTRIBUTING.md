@@ -14,7 +14,7 @@ Before asking a question, please check existing [issues](https://github.com/graf
 
 ## Reporting Bugs
 
-Report bugs and errors using GitHub [issues](https://github.com/grafana/xk6-dukpt/issues).
+Report bugs and errors using GitHub [issues](https://github.com/arukiidou/xk6-dukpt/issues).
 
 Before opening a new issue:
 

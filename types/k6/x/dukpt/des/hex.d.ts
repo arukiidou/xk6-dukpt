@@ -21,7 +21,7 @@ export declare function derivationOfInitialKeyAsHex(
  * k6 API for [des.DeriveCurrentTransactionKey] compat with moov-io,
  * derives the current transaction key as a hex encoded string.
  * @param ik The initial key as a hex string (case-insensitive). Must be exactly 16 bytes (stricter than moov-io).
- * @param ksn The key serial number as a hex string (case-insensitive). Must be exactly 10 bytes (stricter than moov-io).
+ * @param ksn The key serial number as a hex string (case-insensitive). Must be exactly 10 bytes (stricter than moov-io). Its transaction counter must be non-zero with at most 10 one-bits (stricter than moov-io).
  * @returns The derived transaction key as an uppercase hex string.
  */
 export declare function deriveCurrentTransactionKeyAsHex(
