@@ -141,7 +141,7 @@ func DecryptPinAsBase64(currentKey, ciphertext, pan, format string) (string, err
 //
 // currentKey base64 string - 16 bytes transaction key.
 // iv base64 string - initial vector, empty for the default zero vector.
-// plainText is transaction request data.
+// plainText is transaction request data, must not be empty.
 // action is "request" or "response", anything else is an error.
 // Stricter than upstream (moov-io).
 //
@@ -166,6 +166,10 @@ func EncryptDataAsBase64(currentKey, iv, plainText, action string) (string, erro
 	}
 
 	if err := validateKey("currentKey", rawCurrentKey); err != nil {
+		return "", err
+	}
+
+	if err := validatePlainText(plainText); err != nil {
 		return "", err
 	}
 
@@ -227,7 +231,7 @@ func DecryptDataAsBase64(currentKey, ciphertext, iv, action string) (string, err
 // [des.GenerateMac] port from moov-io
 //
 // currentKey base64 string - 16 bytes transaction key.
-// plainText is transaction request data.
+// plainText is transaction request data, must not be empty.
 // action is "request" or "response", anything else is an error.
 // Stricter than upstream (moov-io).
 //
@@ -244,6 +248,10 @@ func GenerateMacAsBase64(currentKey, plainText, action string) (string, error) {
 	}
 
 	if err := validateKey("currentKey", rawCurrentKey); err != nil {
+		return "", err
+	}
+
+	if err := validatePlainText(plainText); err != nil {
 		return "", err
 	}
 
