@@ -98,7 +98,7 @@ export declare function decryptPin(
  * encrypts transaction data using the DUKPT transaction key.
  * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
  * @param iv The initial vector, null for the default zero vector. Must be 8 bytes if given (stricter than moov-io).
- * @param plainText The transaction request data.
+ * @param plainText The transaction request data. Must not be empty (stricter than moov-io).
  * @param action The request or response action. Must be exactly "request" or "response" (stricter than moov-io).
  * @returns The encrypted data, zero padded to a multiple of 8 bytes.
  */
@@ -129,7 +129,7 @@ export declare function decryptData(
  * k6 API for [des.GenerateMac] port from moov-io,
  * generates a MAC using the DUKPT transaction key.
  * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
- * @param plainText The transaction request data.
+ * @param plainText The transaction request data. Must not be empty (stricter than moov-io).
  * @param action The request or response action. Must be exactly "request" or "response" (stricter than moov-io).
  * @returns The 8 byte mac. Use the first 4 bytes as the ANSI X9.24-1 mac.
  */

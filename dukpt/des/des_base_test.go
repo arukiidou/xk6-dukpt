@@ -593,3 +593,28 @@ func TestInvalidCiphertextLength(t *testing.T) {
 		})
 	}
 }
+
+func TestEmptyPlainText(t *testing.T) {
+	m, _ := newTestModule(t)
+	const act = pkg.ActionRequest
+	key := make([]byte, 16)
+	hexKey := "00000000000000000000000000000000"
+	b64Key := "AAAAAAAAAAAAAAAAAAAAAA=="
+
+	tests := []struct {
+		name string
+		call func() error
+	}{
+		{name: "ArrayBuffer/encryptData", call: func() error { return errOf(m.EncryptData(key, nil, "", act)) }},
+		{name: "ArrayBuffer/generateMac", call: func() error { return errOf(m.GenerateMac(key, "", act)) }},
+		{name: "Hex/encryptData", call: func() error { return errOf(EncryptDataAsHex(hexKey, "", "", act)) }},
+		{name: "Hex/generateMac", call: func() error { return errOf(GenerateMacAsHex(hexKey, "", act)) }},
+		{name: "Base64/encryptData", call: func() error { return errOf(EncryptDataAsBase64(b64Key, "", "", act)) }},
+		{name: "Base64/generateMac", call: func() error { return errOf(GenerateMacAsBase64(b64Key, "", act)) }},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.EqualError(t, tt.call(), "plainText must not be empty")
+		})
+	}
+}

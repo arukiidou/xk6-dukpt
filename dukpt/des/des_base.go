@@ -4,6 +4,7 @@
 package des
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/grafana/sobek"
@@ -129,7 +130,7 @@ func DecryptPin(currentKey, ciphertext []byte, pan, format string) (string, erro
 // Params:
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
 //   - iv[ArrayBuffer] is the 8 byte initial vector, null or empty for the default zero vector
-//   - plainText is transaction request data
+//   - plainText is transaction request data, must not be empty.
 //   - action is "request" or "response", anything else is an error.
 //     Stricter than upstream (moov-io).
 //
@@ -146,6 +147,10 @@ func (m *module) EncryptData(currentKey, iv []byte, plainText, action string) (*
 	}
 
 	if err := validateKey("currentKey", currentKey); err != nil {
+		return nil, err
+	}
+
+	if err := validatePlainText(plainText); err != nil {
 		return nil, err
 	}
 
@@ -199,7 +204,7 @@ func (m *module) DecryptData(currentKey, ciphertext, iv []byte, action string) (
 //
 // Params:
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
-//   - plainText is transaction request data
+//   - plainText is transaction request data, must not be empty.
 //   - action is "request" or "response", anything else is an error.
 //     Stricter than upstream (moov-io).
 //
@@ -211,6 +216,10 @@ func (m *module) GenerateMac(currentKey []byte, plainText, action string) (*sobe
 		return nil, err
 	}
 	if err := validateKey("currentKey", currentKey); err != nil {
+		return nil, err
+	}
+
+	if err := validatePlainText(plainText); err != nil {
 		return nil, err
 	}
 
@@ -264,6 +273,15 @@ func validateKsn(ksn []byte) error {
 func validateCiphertext(ct []byte) error {
 	if len(ct) == 0 || len(ct)%desBlockLen != 0 {
 		return fmt.Errorf("ciphertext length must be a non-zero multiple of %d bytes, got %d", desBlockLen, len(ct))
+	}
+	return nil
+}
+
+// validatePlainText rejects empty data. moov-io encrypts it into an empty
+// ciphertext that decryptData refuses, and MACs it as the zero block.
+func validatePlainText(pt string) error {
+	if len(pt) == 0 {
+		return errors.New("plainText must not be empty")
 	}
 	return nil
 }
