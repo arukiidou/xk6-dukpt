@@ -246,3 +246,30 @@ Errors read `ksn transaction counter must not be 0` or
 
 `derivationOfInitialKey` is unchanged: it clears the counter, so a KSN with counter 0 still derives the initial key.
 `getDesTcFromKsn` and `generateNextDesKsn` are unchanged as well; `generateNextDesKsn` from counter 0 returns counter 1.
+
+### Breaking changes in v0.13.0: byte arguments take only ArrayBuffer or Uint8Array
+
+Every byte argument of the raw APIs now rejects anything but an `ArrayBuffer` or `Uint8Array`,
+as `plainText` already did since v0.12.0 and as the type definitions always declared.
+Before, sobek converted a string into its UTF-8 bytes and a number array into one byte per element without complaint,
+so e.g. `deriveCurrentTransactionKey("0123456789ABCDEF", "0123456789")` derived a key from the ASCII codes.
+The Base64 and Hex variants are unchanged.
+
+| Argument | Accepted | APIs |
+| --- | --- | --- |
+| `bdk`, `ik`, `ksn` | `ArrayBuffer` or `Uint8Array` | `derivationOfInitialKey`, `deriveCurrentTransactionKey` |
+| `currentKey` | `ArrayBuffer` or `Uint8Array` | `encryptPin`, `decryptPin`, `encryptData`, `decryptData`, `generateMac` |
+| `ciphertextPin`, `ciphertext` | `ArrayBuffer` or `Uint8Array` | `decryptPin`, `decryptData` |
+| `iv` | `ArrayBuffer`, `Uint8Array`, `null` or `undefined` (zero vector) | `encryptData`, `decryptData` |
+| `ksn` | `ArrayBuffer` or `Uint8Array` | `getDesTcFromKsn`, `generateNextDesKsn` (`k6/x/dukpt`) |
+
+Rejected values include strings (also `""` as `iv`), number arrays, other typed arrays such as `Uint16Array`, and `DataView`.
+Errors name the argument, e.g. `ksn must be an ArrayBuffer or Uint8Array` or
+`iv must be an ArrayBuffer, Uint8Array, null or undefined`.
+Convert the value first:
+
+```typescript
+deriveCurrentTransactionKey(Uint8Array.fromHex(ik), Uint8Array.fromHex(ksn));
+deriveCurrentTransactionKey(new Uint8Array([/* ... */]), ksn); // instead of a number array
+encryptData(ck, null, data, "request"); // instead of "" as iv
+```

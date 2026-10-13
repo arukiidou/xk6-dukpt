@@ -31,6 +31,12 @@ func newTestModule(t *testing.T) (*module, func(*sobek.ArrayBuffer, error) []byt
 	return instance, unwrap
 }
 
+// jsBytes returns b as the JS ArrayBuffer the ksn arguments take. The buffer
+// shares b, so a write through it shows up in b.
+func (m *module) jsBytes(b []byte) sobek.Value {
+	return m.vu.Runtime().ToValue(m.vu.Runtime().NewArrayBuffer(b))
+}
+
 // A.4.2 Initial Sequence KSNs from moov-io/dukpt.
 var moovInitialKsns = []string{
 	"FFFF9876543210E00001", // //+YdlQyEOAAAQ==
@@ -47,28 +53,31 @@ func TestGetDesTcFromKsn(t *testing.T) {
 		t.Run(fmt.Sprintf("Sequence #%d KSN: %s", index+1, ksn), func(t *testing.T) {
 			t.Parallel()
 
+			m, _ := newTestModule(t)
 			rawKsn := pkg.HexDecode(ksn)
 
-			tc, err := GetDesTcFromKsn(rawKsn)
+			tc, err := GetDesTcFromKsn(m.jsBytes(rawKsn))
 			require.NoError(t, err)
 			require.Equal(t, pkg.GetDesTcFromKsn(rawKsn), tc)
 			require.Equal(t, uint32(index+1), tc)
 		})
 	}
 
+	m, _ := newTestModule(t)
+
 	// Low 21 bits only.
-	tc, err := GetDesTcFromKsn(pkg.HexDecode("FFFF9876543210FFFFFF"))
+	tc, err := GetDesTcFromKsn(m.jsBytes(pkg.HexDecode("FFFF9876543210FFFFFF")))
 	require.NoError(t, err)
 	require.Equal(t, uint32(0x1FFFFF), tc)
 
 	// moov-io reads counter 0 below 4 bytes, which is an error here.
-	_, err = GetDesTcFromKsn([]byte{0x01, 0x02, 0x03})
+	_, err = GetDesTcFromKsn(m.jsBytes([]byte{0x01, 0x02, 0x03}))
 	require.Error(t, err)
-	_, err = GetDesTcFromKsn(nil)
+	_, err = GetDesTcFromKsn(m.jsBytes(nil))
 	require.Error(t, err)
 
 	// Shortest accepted KSN.
-	tc, err = GetDesTcFromKsn([]byte{0x00, 0x00, 0x00, 0x05})
+	tc, err = GetDesTcFromKsn(m.jsBytes([]byte{0x00, 0x00, 0x00, 0x05}))
 	require.NoError(t, err)
 	require.Equal(t, uint32(5), tc)
 }
@@ -93,7 +102,7 @@ func TestGenerateNextDesKsn(t *testing.T) {
 			m, unwrap := newTestModule(t)
 			rawKsn := pkg.HexDecode(tt.ksn)
 
-			next := unwrap(m.GenerateNextDesKsn(rawKsn))
+			next := unwrap(m.GenerateNextDesKsn(m.jsBytes(rawKsn)))
 			require.Equal(t, pkg.HexDecode(tt.next), next)
 			require.Equal(t, pkg.HexDecode(tt.ksn), rawKsn, "input must not be modified")
 
@@ -106,16 +115,16 @@ func TestGenerateNextDesKsn(t *testing.T) {
 	m, _ := newTestModule(t)
 
 	// Counter exhausted.
-	_, err := m.GenerateNextDesKsn(pkg.HexDecode("FFFF9876543210FFF800"))
+	_, err := m.GenerateNextDesKsn(m.jsBytes(pkg.HexDecode("FFFF9876543210FFF800")))
 	require.Error(t, err)
 
 	// Short KSN errors instead of panicking.
-	_, err = m.GenerateNextDesKsn([]byte{0x01, 0x02})
+	_, err = m.GenerateNextDesKsn(m.jsBytes([]byte{0x01, 0x02}))
 	require.Error(t, err)
 
 	// 3 bytes would read counter 0 and silently restart it at 1.
-	_, err = m.GenerateNextDesKsn([]byte{0xE0, 0x00, 0x08})
+	_, err = m.GenerateNextDesKsn(m.jsBytes([]byte{0xE0, 0x00, 0x08}))
 	require.Error(t, err)
-	_, err = m.GenerateNextDesKsn(nil)
+	_, err = m.GenerateNextDesKsn(m.jsBytes(nil))
 	require.Error(t, err)
 }

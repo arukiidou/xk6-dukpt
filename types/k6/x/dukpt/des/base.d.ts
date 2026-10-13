@@ -97,14 +97,14 @@ export declare function decryptPin(
  * k6 API for [des.EncryptData] port from moov-io,
  * encrypts transaction data using the DUKPT transaction key.
  * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
- * @param iv The initial vector, null for the default zero vector. Must be 8 bytes if given (stricter than moov-io).
+ * @param iv The initial vector, null or undefined for the default zero vector. Must be 8 bytes if given (stricter than moov-io).
  * @param plainText The transaction request data. Must not be empty (stricter than moov-io). A string is an error, encode text with TextEncoder.
  * @param action The request or response action. Must be exactly "request" or "response" (stricter than moov-io).
  * @returns The encrypted data, zero padded to a multiple of 8 bytes.
  */
 export declare function encryptData(
   currentKey: ArrayBuffer | Uint8Array<ArrayBufferLike>,
-  iv: ArrayBuffer | Uint8Array<ArrayBufferLike> | null,
+  iv: ArrayBuffer | Uint8Array<ArrayBufferLike> | null | undefined,
   plainText: ArrayBuffer | Uint8Array<ArrayBufferLike>,
   action: DukptAction
 ): ArrayBuffer;
@@ -114,14 +114,14 @@ export declare function encryptData(
  * decrypts transaction data using the DUKPT transaction key.
  * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
  * @param ciphertext The encrypted data. Must be a non-empty multiple of 8 bytes (stricter than moov-io).
- * @param iv The initial vector, null for the default zero vector. Must be 8 bytes if given (stricter than moov-io).
+ * @param iv The initial vector, null or undefined for the default zero vector. Must be 8 bytes if given (stricter than moov-io).
  * @param action The request or response action. Must be exactly "request" or "response" (stricter than moov-io).
  * @returns The transaction request data, zero padded to a multiple of 8 bytes.
  */
 export declare function decryptData(
   currentKey: ArrayBuffer | Uint8Array<ArrayBufferLike>,
   ciphertext: ArrayBuffer | Uint8Array<ArrayBufferLike>,
-  iv: ArrayBuffer | Uint8Array<ArrayBufferLike> | null,
+  iv: ArrayBuffer | Uint8Array<ArrayBufferLike> | null | undefined,
   action: DukptAction
 ): ArrayBuffer;
 
