@@ -37,14 +37,14 @@ export declare function deriveCurrentTransactionKeyAsBase64(
  * For example: ISO-4 (AES based) is obviously not usable with DES.
  *
  * @param currentKey The transaction key as a base64 string. Must be exactly 16 bytes (stricter than moov-io).
- * @param pin The not formatted pin string.
+ * @param cleartextPin The not formatted pin string.
  * @param pan The not formatted pan string.
  * @param format The pinblock format.
  * @returns The cipher text as a base64 string.
  */
 export declare function encryptPinAsBase64(
   currentKey: string,
-  pin: string,
+  cleartextPin: string,
   pan: string,
   format: PinBlockFormat
 ): string;
@@ -58,14 +58,14 @@ export declare function encryptPinAsBase64(
  * For example: ISO-4 (AES based) is obviously not usable with DES.
  *
  * @param currentKey The transaction key as a base64 string. Must be exactly 16 bytes (stricter than moov-io).
- * @param ciphertext The encrypted pin block as a base64 string. Must be exactly 8 bytes.
+ * @param ciphertextPin The encrypted pin block as a base64 string. Must be exactly 8 bytes.
  * @param pan The not formatted pan string.
  * @param format The pinblock format.
  * @returns The pin string.
  */
 export declare function decryptPinAsBase64(
   currentKey: string,
-  ciphertext: string,
+  ciphertextPin: string,
   pan: string,
   format: PinBlockFormat
 ): string;

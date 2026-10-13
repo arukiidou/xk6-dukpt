@@ -62,14 +62,14 @@ export declare function deriveCurrentTransactionKey(
  * caller should control which format is used.
  * For example: ISO-4 (AES based) is obviously not usable with DES.
  * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
- * @param pin The not formatted pin string.
+ * @param cleartextPin The not formatted pin string.
  * @param pan The not formatted pan string.
  * @param format The pinblock format.
  * @returns The cipher text.
  */
 export declare function encryptPin(
   currentKey: ArrayBuffer | Uint8Array<ArrayBufferLike>,
-  pin: string,
+  cleartextPin: string,
   pan: string,
   format: PinBlockFormat
 ): ArrayBuffer;
@@ -81,14 +81,14 @@ export declare function encryptPin(
  * caller should control which format is used.
  * For example: ISO-4 (AES based) is obviously not usable with DES.
  * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
- * @param ciphertext The encrypted pin block. Must be exactly 8 bytes.
+ * @param ciphertextPin The encrypted pin block. Must be exactly 8 bytes.
  * @param pan The not formatted pan string.
  * @param format The pinblock format.
  * @returns The pin string.
  */
 export declare function decryptPin(
   currentKey: ArrayBuffer | Uint8Array<ArrayBufferLike>,
-  ciphertext: ArrayBuffer | Uint8Array<ArrayBufferLike>,
+  ciphertextPin: ArrayBuffer | Uint8Array<ArrayBufferLike>,
   pan: string,
   format: PinBlockFormat
 ): string;
