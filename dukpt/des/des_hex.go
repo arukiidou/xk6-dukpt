@@ -86,7 +86,7 @@ func DerivationOfInitialKeyAsHex(bdk, ksn string) (string, error) {
 // [des.EncryptPin] port from moov-io, as a Hex variant
 //
 // currentKey hex string - 16 bytes transaction key.
-// pin is not formatted pin string.
+// cleartextPin is not formatted pin string.
 // pan is not formatted pan string.
 // format is pinblock format
 // ("ISO-0", "ISO-1", "ISO-2", "ISO-3", "ISO-4", "ANSI", "ECI1", "ECI2", "ECI3", "ECI4", "VISA1", "VISA2", "VISA3", "VISA4").
@@ -98,7 +98,7 @@ func DerivationOfInitialKeyAsHex(bdk, ksn string) (string, error) {
 // Return Params:
 //   - result is uppercase hex string - cipher text
 //   - err
-func EncryptPinAsHex(currentKey, pin, pan, format string) (string, error) {
+func EncryptPinAsHex(currentKey, cleartextPin, pan, format string) (string, error) {
 	rawCurrentKey, err := hex.DecodeString(currentKey)
 	if err != nil {
 		return "", err
@@ -108,17 +108,17 @@ func EncryptPinAsHex(currentKey, pin, pan, format string) (string, error) {
 		return "", err
 	}
 
-	ciphertext, err := des.EncryptPin(rawCurrentKey, pin, pan, format)
+	ciphertextPin, err := des.EncryptPin(rawCurrentKey, cleartextPin, pan, format)
 	if err != nil {
 		return "", err
 	}
-	return encodeUpperHex(ciphertext), nil
+	return encodeUpperHex(ciphertextPin), nil
 }
 
 // [des.DecryptPin] port from moov-io, as a Hex variant
 //
 // currentKey hex string - 16 bytes transaction key.
-// ciphertext hex string - 8 bytes encrypted pin block.
+// ciphertextPin hex string - 8 bytes encrypted pin block.
 // pan is not formatted pan string.
 // format is pinblock format
 // ("ISO-0", "ISO-1", "ISO-2", "ISO-3", "ISO-4", "ANSI", "ECI1", "ECI2", "ECI3", "ECI4", "VISA1", "VISA2", "VISA3", "VISA4").
@@ -130,12 +130,12 @@ func EncryptPinAsHex(currentKey, pin, pan, format string) (string, error) {
 // Return Params:
 //   - result is pin string (plain text)
 //   - err
-func DecryptPinAsHex(currentKey, ciphertext, pan, format string) (string, error) {
+func DecryptPinAsHex(currentKey, ciphertextPin, pan, format string) (string, error) {
 	rawCurrentKey, err := hex.DecodeString(currentKey)
 	if err != nil {
 		return "", err
 	}
-	rawCiphertext, err := hex.DecodeString(ciphertext)
+	rawCiphertextPin, err := hex.DecodeString(ciphertextPin)
 	if err != nil {
 		return "", err
 	}
@@ -143,11 +143,11 @@ func DecryptPinAsHex(currentKey, ciphertext, pan, format string) (string, error)
 	if err := validateKey("currentKey", rawCurrentKey); err != nil {
 		return "", err
 	}
-	if err := validatePinBlock(rawCiphertext); err != nil {
+	if err := validatePinBlock(rawCiphertextPin); err != nil {
 		return "", err
 	}
 
-	return des.DecryptPin(rawCurrentKey, rawCiphertext, pan, format)
+	return des.DecryptPin(rawCurrentKey, rawCiphertextPin, pan, format)
 }
 
 // [des.EncryptData] port from moov-io, as a Hex variant

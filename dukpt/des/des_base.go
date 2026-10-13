@@ -82,7 +82,7 @@ func (m *module) DerivationOfInitialKey(bdk, ksn []byte) (*sobek.ArrayBuffer, er
 //
 // Params:
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
-//   - pin is not formatted pin string
+//   - cleartextPin is not formatted pin string
 //   - pan is not formatted pan string
 //   - format is pinblock format
 //     ("ISO-0", "ISO-1", "ISO-2", "ISO-3", "ISO-4", "ANSI", "ECI1", "ECI2", "ECI3", "ECI4", "VISA1", "VISA2", "VISA3", "VISA4")
@@ -94,23 +94,23 @@ func (m *module) DerivationOfInitialKey(bdk, ksn []byte) (*sobek.ArrayBuffer, er
 // Return Params:
 //   - result[ArrayBuffer] - cipher text
 //   - err
-func (m *module) EncryptPin(currentKey []byte, pin, pan, format string) (*sobek.ArrayBuffer, error) {
+func (m *module) EncryptPin(currentKey []byte, cleartextPin, pan, format string) (*sobek.ArrayBuffer, error) {
 	if err := validateKey("currentKey", currentKey); err != nil {
 		return nil, err
 	}
 
-	ciphertext, err := des.EncryptPin(currentKey, pin, pan, format)
+	ciphertextPin, err := des.EncryptPin(currentKey, cleartextPin, pan, format)
 	if err != nil {
 		return nil, err
 	}
-	return m.newArrayBuffer(ciphertext), nil
+	return m.newArrayBuffer(ciphertextPin), nil
 }
 
 // [des.DecryptPin] port from moov-io
 //
 // Params:
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
-//   - ciphertext[ArrayBuffer] is 8 bytes encrypted pin block
+//   - ciphertextPin[ArrayBuffer] is 8 bytes encrypted pin block
 //   - pan is not formatted pan string
 //   - format is pinblock format
 //     ("ISO-0", "ISO-1", "ISO-2", "ISO-3", "ISO-4", "ANSI", "ECI1", "ECI2", "ECI3", "ECI4", "VISA1", "VISA2", "VISA3", "VISA4")
@@ -122,15 +122,15 @@ func (m *module) EncryptPin(currentKey []byte, pin, pan, format string) (*sobek.
 // Return Params:
 //   - result - pin string (plain text)
 //   - err
-func DecryptPin(currentKey, ciphertext []byte, pan, format string) (string, error) {
+func DecryptPin(currentKey, ciphertextPin []byte, pan, format string) (string, error) {
 	if err := validateKey("currentKey", currentKey); err != nil {
 		return "", err
 	}
-	if err := validatePinBlock(ciphertext); err != nil {
+	if err := validatePinBlock(ciphertextPin); err != nil {
 		return "", err
 	}
 
-	return des.DecryptPin(currentKey, ciphertext, pan, format)
+	return des.DecryptPin(currentKey, ciphertextPin, pan, format)
 }
 
 // [des.EncryptData] port from moov-io
@@ -313,7 +313,7 @@ func validateCiphertext(ct []byte) error {
 // validatePinBlock checks an 8 byte encrypted PIN block. moov-io rejects other
 // lengths too, but without naming the argument or the actual length.
 func validatePinBlock(ct []byte) error {
-	return requireLen("ciphertext", ct, desBlockLen)
+	return requireLen("ciphertextPin", ct, desBlockLen)
 }
 
 // bytesArg takes an ArrayBuffer or Uint8Array argument. sobek would turn

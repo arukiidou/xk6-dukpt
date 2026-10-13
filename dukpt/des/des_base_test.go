@@ -612,27 +612,27 @@ func TestInvalidPinBlockLength(t *testing.T) {
 		{
 			name: "ArrayBuffer/empty",
 			call: func() error { return errOf(DecryptPin(key, nil, pan, formatVersion)) },
-			want: "ciphertext must be 8 bytes, got 0",
+			want: "ciphertextPin must be 8 bytes, got 0",
 		},
 		{
 			name: "ArrayBuffer/short",
 			call: func() error { return errOf(DecryptPin(key, make([]byte, 3), pan, formatVersion)) },
-			want: "ciphertext must be 8 bytes, got 3",
+			want: "ciphertextPin must be 8 bytes, got 3",
 		},
 		{
 			name: "ArrayBuffer/long",
 			call: func() error { return errOf(DecryptPin(key, make([]byte, 16), pan, formatVersion)) },
-			want: "ciphertext must be 8 bytes, got 16",
+			want: "ciphertextPin must be 8 bytes, got 16",
 		},
 		{
 			name: "Hex/short",
 			call: func() error { return errOf(DecryptPinAsHex(hexKey, strings.Repeat("00", 7), pan, formatVersion)) },
-			want: "ciphertext must be 8 bytes, got 7",
+			want: "ciphertextPin must be 8 bytes, got 7",
 		},
 		{
 			name: "Base64/long",
 			call: func() error { return errOf(DecryptPinAsBase64(b64Key, b64Key, pan, formatVersion)) },
-			want: "ciphertext must be 8 bytes, got 16",
+			want: "ciphertextPin must be 8 bytes, got 16",
 		},
 	})
 }
