@@ -64,7 +64,7 @@ export declare function deriveCurrentTransactionKey(
  * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
  * @param pin The not formatted pin string.
  * @param pan The not formatted pan string.
- * @param format The pinblock format. 
+ * @param format The pinblock format.
  * @returns The cipher text.
  */
 export declare function encryptPin(
@@ -81,7 +81,7 @@ export declare function encryptPin(
  * caller should control which format is used.
  * For example: ISO-4 (AES based) is obviously not usable with DES.
  * @param currentKey The transaction key. Must be exactly 16 bytes (stricter than moov-io).
- * @param ciphertext The encrypted pin block.
+ * @param ciphertext The encrypted pin block. Must be exactly 8 bytes.
  * @param pan The not formatted pan string.
  * @param format The pinblock format.
  * @returns The pin string.

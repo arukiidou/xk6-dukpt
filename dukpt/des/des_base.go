@@ -110,7 +110,7 @@ func (m *module) EncryptPin(currentKey []byte, pin, pan, format string) (*sobek.
 //
 // Params:
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
-//   - ciphertext[ArrayBuffer] is encrypted pin block
+//   - ciphertext[ArrayBuffer] is 8 bytes encrypted pin block
 //   - pan is not formatted pan string
 //   - format is pinblock format
 //     ("ISO-0", "ISO-1", "ISO-2", "ISO-3", "ISO-4", "ANSI", "ECI1", "ECI2", "ECI3", "ECI4", "VISA1", "VISA2", "VISA3", "VISA4")
@@ -124,6 +124,9 @@ func (m *module) EncryptPin(currentKey []byte, pin, pan, format string) (*sobek.
 //   - err
 func DecryptPin(currentKey, ciphertext []byte, pan, format string) (string, error) {
 	if err := validateKey("currentKey", currentKey); err != nil {
+		return "", err
+	}
+	if err := validatePinBlock(ciphertext); err != nil {
 		return "", err
 	}
 
@@ -305,6 +308,12 @@ func validateCiphertext(ct []byte) error {
 		return fmt.Errorf("ciphertext length must be a non-zero multiple of %d bytes, got %d", desBlockLen, len(ct))
 	}
 	return nil
+}
+
+// validatePinBlock checks an 8 byte encrypted PIN block. moov-io rejects other
+// lengths too, but without naming the argument or the actual length.
+func validatePinBlock(ct []byte) error {
+	return requireLen("ciphertext", ct, desBlockLen)
 }
 
 // bytesArg takes an ArrayBuffer or Uint8Array argument. sobek would turn

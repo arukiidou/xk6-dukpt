@@ -58,7 +58,7 @@ export declare function encryptPinAsHex(
  * For example: ISO-4 (AES based) is obviously not usable with DES.
  *
  * @param currentKey The transaction key as a hex string (case-insensitive). Must be exactly 16 bytes (stricter than moov-io).
- * @param ciphertext The encrypted pin block as a hex string (case-insensitive).
+ * @param ciphertext The encrypted pin block as a hex string (case-insensitive). Must be exactly 8 bytes.
  * @param pan The not formatted pan string.
  * @param format The pinblock format.
  * @returns The pin string.
