@@ -5,6 +5,7 @@ package des
 
 import (
 	_ "embed"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -83,5 +84,94 @@ func Test_module(t *testing.T) { //nolint:tparallel
 			require.NoError(t, err)
 			require.True(t, got.ToBoolean())
 		})
+	}
+}
+
+// sobek converts strings, number arrays and other typed arrays into []byte
+// without complaint, so every byte argument of the raw APIs has to reject them.
+func Test_module_nonByteArguments(t *testing.T) { //nolint:tparallel
+	t.Parallel()
+
+	runtime := modulestest.NewRuntime(t)
+
+	err := runtime.SetupModuleSystem(map[string]any{ImportPath: new(DesModule)}, nil, nil)
+	require.NoError(t, err)
+
+	_, err = runtime.RunOnEventLoop(`
+		var mod = require("` + ImportPath + `");
+		var key = Uint8Array.fromBase64("BCZmtJGEz6No3pYo0Dl7yQ==");
+		var ksn = Uint8Array.fromBase64("//+YdlQyEOAAAQ==");
+		var pinBlock = Uint8Array.fromBase64("G5wYReuZOno=");
+		var data = Uint8Array.fromHex("3430313233343536373839303944393837");
+		var ct = Uint8Array.fromBase64("/A1Tt+of2p7miq8ucNm5UGIpviqpk/BP");
+		// rejected returns the error a call throws, or "" when it does not throw.
+		var rejected = (f) => { try { f(); return "" } catch (e) { return String(e) } };
+	`)
+	require.NoError(t, err)
+
+	// Each call takes the value under test in place of $.
+	args := []struct {
+		name string
+		call string
+	}{
+		{name: "bdk", call: `mod.derivationOfInitialKey($, ksn)`},
+		{name: "ksn", call: `mod.derivationOfInitialKey(key, $)`},
+		{name: "ik", call: `mod.deriveCurrentTransactionKey($, ksn)`},
+		{name: "ksn", call: `mod.deriveCurrentTransactionKey(key, $)`},
+		{name: "currentKey", call: `mod.encryptPin($, "1234", "4012345678909", "ISO-0")`},
+		{name: "currentKey", call: `mod.decryptPin($, pinBlock, "4012345678909", "ISO-0")`},
+		{name: "ciphertextPin", call: `mod.decryptPin(key, $, "4012345678909", "ISO-0")`},
+		{name: "currentKey", call: `mod.encryptData($, null, data, "request")`},
+		{name: "plainText", call: `mod.encryptData(key, null, $, "request")`},
+		{name: "currentKey", call: `mod.decryptData($, ct, null, "request")`},
+		{name: "ciphertext", call: `mod.decryptData(key, $, null, "request")`},
+		{name: "currentKey", call: `mod.generateMac($, data, "request")`},
+		{name: "plainText", call: `mod.generateMac(key, $, "request")`},
+	}
+	values := []string{
+		`"0123456789ABCDEF"`,
+		`""`,
+		`[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]`,
+		`new Uint16Array(16)`,
+		`new DataView(new ArrayBuffer(16))`,
+		`42`,
+		`{}`,
+		`null`,
+		`undefined`,
+	}
+	for _, arg := range args {
+		for _, value := range values {
+			call := strings.ReplaceAll(arg.call, "$", value)
+			t.Run(call, func(t *testing.T) {
+				got, err := runtime.RunOnEventLoop(`rejected(() => ` + call + `)`)
+				require.NoError(t, err)
+				require.Contains(t, got.String(), arg.name+" must be an ArrayBuffer or Uint8Array")
+			})
+		}
+	}
+
+	ivCalls := []string{
+		`mod.encryptData(key, $, data, "request")`,
+		`mod.decryptData(key, ct, $, "request")`,
+	}
+	for _, ivCall := range ivCalls {
+		// null and undefined stand for the zero vector.
+		for _, value := range []string{`null`, `undefined`} {
+			call := strings.ReplaceAll(ivCall, "$", value)
+			t.Run(call, func(t *testing.T) {
+				got, err := runtime.RunOnEventLoop(`new Uint8Array(` + call + `).toBase64() === new Uint8Array(` +
+					strings.ReplaceAll(ivCall, "$", `new Uint8Array(8)`) + `).toBase64()`)
+				require.NoError(t, err)
+				require.True(t, got.ToBoolean())
+			})
+		}
+		for _, value := range values[:7] {
+			call := strings.ReplaceAll(ivCall, "$", value)
+			t.Run(call, func(t *testing.T) {
+				got, err := runtime.RunOnEventLoop(`rejected(() => ` + call + `)`)
+				require.NoError(t, err)
+				require.Contains(t, got.String(), "iv must be an ArrayBuffer, Uint8Array, null or undefined")
+			})
+		}
 	}
 }

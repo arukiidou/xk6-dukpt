@@ -6,6 +6,7 @@ package dukpt
 import (
 	"fmt"
 
+	"github.com/arukiidou/xk6-dukpt/internal/jsbytes"
 	"github.com/grafana/sobek"
 	"github.com/moov-io/dukpt/pkg"
 )
@@ -26,7 +27,11 @@ func (m *module) newArrayBuffer(b []byte) *sobek.ArrayBuffer {
 //   - err
 //
 // The KSN must be at least 4 bytes, moov-io returns 0 for shorter ones.
-func GetDesTcFromKsn(ksn []byte) (uint32, error) {
+func GetDesTcFromKsn(ksnArg sobek.Value) (uint32, error) {
+	ksn, err := jsbytes.Required("ksn", ksnArg)
+	if err != nil {
+		return 0, err
+	}
 	return getDesTcFromKsn(ksn)
 }
 
@@ -52,7 +57,11 @@ func getDesTcFromKsn(ksn []byte) (uint32, error) {
 //   - err
 //
 // The input is not modified.
-func (m *module) GenerateNextDesKsn(ksn []byte) (*sobek.ArrayBuffer, error) {
+func (m *module) GenerateNextDesKsn(ksnArg sobek.Value) (*sobek.ArrayBuffer, error) {
+	ksn, err := jsbytes.Required("ksn", ksnArg)
+	if err != nil {
+		return nil, err
+	}
 	next, err := generateNextDesKsn(ksn)
 	if err != nil {
 		return nil, err

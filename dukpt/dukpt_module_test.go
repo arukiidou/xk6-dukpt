@@ -42,3 +42,44 @@ func Test_module(t *testing.T) { //nolint:tparallel
 		})
 	}
 }
+
+// sobek converts strings, number arrays and other typed arrays into []byte
+// without complaint, so the raw APIs have to reject them.
+func Test_module_nonByteArguments(t *testing.T) { //nolint:tparallel
+	t.Parallel()
+
+	runtime := modulestest.NewRuntime(t)
+
+	err := runtime.SetupModuleSystem(map[string]any{ImportPath: new(RootModule)}, nil, nil)
+	require.NoError(t, err)
+
+	_, err = runtime.RunOnEventLoop(`
+		var mod = require("` + ImportPath + `");
+		// rejected returns the error a call throws, or "" when it does not throw.
+		var rejected = (f) => { try { f(); return "" } catch (e) { return String(e) } };
+	`)
+	require.NoError(t, err)
+
+	values := []string{
+		`"0123456789"`,
+		`""`,
+		`[0xFF, 0xFF, 0x98, 0x76, 0x54, 0x32, 0x10, 0xE0, 0x00, 0x01]`,
+		`new Uint16Array(10)`,
+		`new DataView(new ArrayBuffer(10))`,
+		`42`,
+		`{}`,
+		`null`,
+		`undefined`,
+		``, // missing
+	}
+	for _, fn := range []string{"getDesTcFromKsn", "generateNextDesKsn"} {
+		for _, value := range values {
+			call := "mod." + fn + "(" + value + ")"
+			t.Run(call, func(t *testing.T) {
+				got, err := runtime.RunOnEventLoop(`rejected(() => ` + call + `)`)
+				require.NoError(t, err)
+				require.Contains(t, got.String(), "ksn must be an ArrayBuffer or Uint8Array")
+			})
+		}
+	}
+}

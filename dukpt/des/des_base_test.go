@@ -35,9 +35,18 @@ func newTestModule(t *testing.T) (*module, func(*sobek.ArrayBuffer, error) []byt
 	return instance, unwrap
 }
 
-// jsBytes returns b as the JS ArrayBuffer the plainText arguments take.
+// jsBytes returns b as the JS ArrayBuffer the byte arguments take. The buffer
+// shares b, so a write through it shows up in b.
 func (m *module) jsBytes(b []byte) sobek.Value {
 	return m.vu.Runtime().ToValue(m.vu.Runtime().NewArrayBuffer(b))
+}
+
+// jsOptionalBytes is jsBytes for the iv, a nil b becomes JS null.
+func (m *module) jsOptionalBytes(b []byte) sobek.Value {
+	if b == nil {
+		return sobek.Null()
+	}
+	return m.jsBytes(b)
 }
 
 // A.4.2 Initial Sequence test values from moov-io/dukpt.
@@ -135,51 +144,51 @@ func TestMoovCompatibility(t *testing.T) {
 
 			m, unwrap := newTestModule(t)
 
-			ik := unwrap(m.DerivationOfInitialKey(moov.Bdk, moov.Ksn))
+			ik := unwrap(m.DerivationOfInitialKey(m.jsBytes(moov.Bdk), m.jsBytes(moov.Ksn)))
 			desIk, err := des.DerivationOfInitialKey(moov.Bdk, moov.Ksn)
 			require.NoError(t, err)
 			require.Equal(t, desIk, ik)
 			require.Equal(t, moov.InitialKey, ik)
 
-			ck := unwrap(m.DeriveCurrentTransactionKey(ik, moov.Ksn))
+			ck := unwrap(m.DeriveCurrentTransactionKey(m.jsBytes(ik), m.jsBytes(moov.Ksn)))
 			desCk, err := des.DeriveCurrentTransactionKey(desIk, moov.Ksn)
 			require.NoError(t, err)
 			require.Equal(t, desCk, ck)
 			require.Equal(t, moov.CurrentKey, ck)
 
-			pinEnc := unwrap(m.EncryptPin(ck, pin, pan, formatVersion))
+			pinEnc := unwrap(m.EncryptPin(m.jsBytes(ck), pin, pan, formatVersion))
 			desPinEnc, err := des.EncryptPin(desCk, pin, pan, formatVersion)
 			require.NoError(t, err)
 			require.Equal(t, desPinEnc, pinEnc)
 			require.Equal(t, moov.PinEnc, pinEnc)
 
-			decPin, err := DecryptPin(ck, pinEnc, pan, formatVersion)
+			decPin, err := DecryptPin(m.jsBytes(ck), m.jsBytes(pinEnc), pan, formatVersion)
 			require.NoError(t, err)
 			require.Equal(t, pin, decPin)
 
-			reqEnc := unwrap(m.EncryptData(ck, nil, m.jsBytes([]byte(data)), pkg.ActionRequest))
+			reqEnc := unwrap(m.EncryptData(m.jsBytes(ck), sobek.Null(), m.jsBytes([]byte(data)), pkg.ActionRequest))
 			require.Equal(t, moov.DataReqEnc, reqEnc)
 
-			decReq := unwrap(m.DecryptData(ck, reqEnc, nil, pkg.ActionRequest))
+			decReq := unwrap(m.DecryptData(m.jsBytes(ck), m.jsBytes(reqEnc), sobek.Null(), pkg.ActionRequest))
 			require.Equal(t, data, string(decReq[:len(data)]))
 
-			resEnc := unwrap(m.EncryptData(ck, nil, m.jsBytes([]byte(data)), pkg.ActionResponse))
+			resEnc := unwrap(m.EncryptData(m.jsBytes(ck), sobek.Null(), m.jsBytes([]byte(data)), pkg.ActionResponse))
 			require.Equal(t, moov.DataResEnc, resEnc)
 
-			decRes := unwrap(m.DecryptData(ck, resEnc, nil, pkg.ActionResponse))
+			decRes := unwrap(m.DecryptData(m.jsBytes(ck), m.jsBytes(resEnc), sobek.Null(), pkg.ActionResponse))
 			require.Equal(t, data, string(decRes[:len(data)]))
 
 			// An empty IV must behave like the nil default instead of panicking.
-			decEmptyIV := unwrap(m.DecryptData(ck, reqEnc, []byte{}, pkg.ActionRequest))
+			decEmptyIV := unwrap(m.DecryptData(m.jsBytes(ck), m.jsBytes(reqEnc), m.jsOptionalBytes([]byte{}), pkg.ActionRequest))
 			require.Equal(t, decReq, decEmptyIV)
 
-			reqMac := unwrap(m.GenerateMac(ck, m.jsBytes([]byte(data)), pkg.ActionRequest))
+			reqMac := unwrap(m.GenerateMac(m.jsBytes(ck), m.jsBytes([]byte(data)), pkg.ActionRequest))
 			desReqMac, err := des.GenerateMac(desCk, data, pkg.ActionRequest)
 			require.NoError(t, err)
 			require.Equal(t, desReqMac, reqMac)
 			require.Equal(t, moov.RequestMac, reqMac)
 
-			resMac := unwrap(m.GenerateMac(ck, m.jsBytes([]byte(data)), pkg.ActionResponse))
+			resMac := unwrap(m.GenerateMac(m.jsBytes(ck), m.jsBytes([]byte(data)), pkg.ActionResponse))
 			desResMac, err := des.GenerateMac(desCk, data, pkg.ActionResponse)
 			require.NoError(t, err)
 			require.Equal(t, desResMac, resMac)
@@ -216,18 +225,18 @@ func TestIVLength(t *testing.T) {
 			m, unwrap := newTestModule(t)
 
 			if tt.block == nil {
-				_, err := m.EncryptData(currentKey, tt.iv, m.jsBytes([]byte(data)), pkg.ActionRequest)
+				_, err := m.EncryptData(m.jsBytes(currentKey), m.jsOptionalBytes(tt.iv), m.jsBytes([]byte(data)), pkg.ActionRequest)
 				require.ErrorContains(t, err, fmt.Sprintf("iv must be 8 bytes, got %d", len(tt.iv)))
 
-				_, err = m.DecryptData(currentKey, nil, tt.iv, pkg.ActionRequest)
+				_, err = m.DecryptData(m.jsBytes(currentKey), m.jsBytes(nil), m.jsOptionalBytes(tt.iv), pkg.ActionRequest)
 				require.ErrorContains(t, err, fmt.Sprintf("iv must be 8 bytes, got %d", len(tt.iv)))
 				return
 			}
 
-			ciphertext := unwrap(m.EncryptData(currentKey, tt.iv, m.jsBytes([]byte(data)), pkg.ActionRequest))
-			require.Equal(t, unwrap(m.EncryptData(currentKey, tt.block, m.jsBytes([]byte(data)), pkg.ActionRequest)), ciphertext)
+			ciphertext := unwrap(m.EncryptData(m.jsBytes(currentKey), m.jsOptionalBytes(tt.iv), m.jsBytes([]byte(data)), pkg.ActionRequest))
+			require.Equal(t, unwrap(m.EncryptData(m.jsBytes(currentKey), m.jsOptionalBytes(tt.block), m.jsBytes([]byte(data)), pkg.ActionRequest)), ciphertext)
 
-			plaintext := unwrap(m.DecryptData(currentKey, ciphertext, tt.iv, pkg.ActionRequest))
+			plaintext := unwrap(m.DecryptData(m.jsBytes(currentKey), m.jsBytes(ciphertext), m.jsOptionalBytes(tt.iv), pkg.ActionRequest))
 			require.Equal(t, data, string(plaintext[:len(data)]))
 		})
 	}
@@ -250,15 +259,15 @@ func TestRawMoovErrors(t *testing.T) {
 		call func(*module) error
 	}{
 		{name: "short bdk", call: func(m *module) error {
-			_, err := m.DerivationOfInitialKey(seq.Bdk[:len(seq.Bdk)-1], seq.Ksn)
+			_, err := m.DerivationOfInitialKey(m.jsBytes(seq.Bdk[:len(seq.Bdk)-1]), m.jsBytes(seq.Ksn))
 			return err
 		}},
 		{name: "unknown pin format for encrypt", call: func(m *module) error {
-			_, err := m.EncryptPin(seq.CurrentKey, pin, pan, "ISO-9")
+			_, err := m.EncryptPin(m.jsBytes(seq.CurrentKey), pin, pan, "ISO-9")
 			return err
 		}},
-		{name: "unknown pin format for decrypt", call: func(_ *module) error {
-			_, err := DecryptPin(seq.CurrentKey, seq.PinEnc, pan, "ISO-9")
+		{name: "unknown pin format for decrypt", call: func(m *module) error {
+			_, err := DecryptPin(m.jsBytes(seq.CurrentKey), m.jsBytes(seq.PinEnc), pan, "ISO-9")
 			return err
 		}},
 	}
@@ -289,26 +298,26 @@ func TestRawInputsNotModified(t *testing.T) {
 		call   func(*module, func(*sobek.ArrayBuffer, error) []byte)
 	}{
 		{name: "DerivationOfInitialKey", inputs: [][]byte{seq.Bdk, seq.Ksn}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
-			unwrap(m.DerivationOfInitialKey(seq.Bdk, seq.Ksn))
+			unwrap(m.DerivationOfInitialKey(m.jsBytes(seq.Bdk), m.jsBytes(seq.Ksn)))
 		}},
 		{name: "DeriveCurrentTransactionKey", inputs: [][]byte{seq.InitialKey, seq.Ksn}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
-			unwrap(m.DeriveCurrentTransactionKey(seq.InitialKey, seq.Ksn))
+			unwrap(m.DeriveCurrentTransactionKey(m.jsBytes(seq.InitialKey), m.jsBytes(seq.Ksn)))
 		}},
 		{name: "EncryptPin", inputs: [][]byte{seq.CurrentKey}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
-			unwrap(m.EncryptPin(seq.CurrentKey, pin, pan, formatVersion))
+			unwrap(m.EncryptPin(m.jsBytes(seq.CurrentKey), pin, pan, formatVersion))
 		}},
 		{name: "DecryptPin", inputs: [][]byte{seq.CurrentKey, seq.PinEnc}, call: func(m *module, _ func(*sobek.ArrayBuffer, error) []byte) {
-			_, err := DecryptPin(seq.CurrentKey, seq.PinEnc, pan, formatVersion)
+			_, err := DecryptPin(m.jsBytes(seq.CurrentKey), m.jsBytes(seq.PinEnc), pan, formatVersion)
 			require.NoError(t, err)
 		}},
 		{name: "EncryptData", inputs: [][]byte{seq.CurrentKey, iv}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
-			unwrap(m.EncryptData(seq.CurrentKey, iv, m.jsBytes([]byte(data)), pkg.ActionRequest))
+			unwrap(m.EncryptData(m.jsBytes(seq.CurrentKey), m.jsOptionalBytes(iv), m.jsBytes([]byte(data)), pkg.ActionRequest))
 		}},
 		{name: "DecryptData", inputs: [][]byte{seq.CurrentKey, seq.DataReqEnc, iv}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
-			unwrap(m.DecryptData(seq.CurrentKey, seq.DataReqEnc, iv, pkg.ActionRequest))
+			unwrap(m.DecryptData(m.jsBytes(seq.CurrentKey), m.jsBytes(seq.DataReqEnc), m.jsOptionalBytes(iv), pkg.ActionRequest))
 		}},
 		{name: "GenerateMac", inputs: [][]byte{seq.CurrentKey}, call: func(m *module, unwrap func(*sobek.ArrayBuffer, error) []byte) {
-			unwrap(m.GenerateMac(seq.CurrentKey, m.jsBytes([]byte(data)), pkg.ActionRequest))
+			unwrap(m.GenerateMac(m.jsBytes(seq.CurrentKey), m.jsBytes([]byte(data)), pkg.ActionRequest))
 		}},
 	}
 
@@ -342,11 +351,11 @@ func TestInvalidAction(t *testing.T) {
 		t.Run(fmt.Sprintf("%q", action), func(t *testing.T) {
 			m, _ := newTestModule(t)
 
-			_, err := m.EncryptData(key, nil, m.jsBytes([]byte("data")), action)
+			_, err := m.EncryptData(m.jsBytes(key), sobek.Null(), m.jsBytes([]byte("data")), action)
 			require.Error(t, err)
-			_, err = m.DecryptData(key, make([]byte, 8), nil, action)
+			_, err = m.DecryptData(m.jsBytes(key), m.jsBytes(make([]byte, 8)), sobek.Null(), action)
 			require.Error(t, err)
-			_, err = m.GenerateMac(key, m.jsBytes([]byte("data")), action)
+			_, err = m.GenerateMac(m.jsBytes(key), m.jsBytes([]byte("data")), action)
 			require.Error(t, err)
 
 			_, err = EncryptDataAsHex(hexKey, "", "64617461", action)
@@ -383,52 +392,58 @@ func TestInvalidKeyAndKsnLength(t *testing.T) {
 		runLenCases(t, []lenCase{
 			{
 				name: "derive/ik",
-				call: func() error { return errOf(m.DeriveCurrentTransactionKey(shortKey, ksn)) },
+				call: func() error { return errOf(m.DeriveCurrentTransactionKey(m.jsBytes(shortKey), m.jsBytes(ksn))) },
 				want: "ik must be 16 bytes, got 15",
 			},
 			{
 				name: "derive/ksn",
-				call: func() error { return errOf(m.DeriveCurrentTransactionKey(key, shortKsn)) },
+				call: func() error { return errOf(m.DeriveCurrentTransactionKey(m.jsBytes(key), m.jsBytes(shortKsn))) },
 				want: "ksn must be 10 bytes, got 9",
 			},
 			{
 				name: "derivation/bdk",
-				call: func() error { return errOf(m.DerivationOfInitialKey(shortKey, ksn)) },
+				call: func() error { return errOf(m.DerivationOfInitialKey(m.jsBytes(shortKey), m.jsBytes(ksn))) },
 				want: "bdk must be 16 bytes, got 15",
 			},
 			{
 				name: "derivation/ksn",
-				call: func() error { return errOf(m.DerivationOfInitialKey(key, shortKsn)) },
+				call: func() error { return errOf(m.DerivationOfInitialKey(m.jsBytes(key), m.jsBytes(shortKsn))) },
 				want: "ksn must be 10 bytes, got 9",
 			},
 			{
 				name: "encryptPin",
-				call: func() error { return errOf(m.EncryptPin(shortKey, "1234", "4012345678909", "ISO-0")) },
+				call: func() error { return errOf(m.EncryptPin(m.jsBytes(shortKey), "1234", "4012345678909", "ISO-0")) },
 				want: "currentKey must be 16 bytes, got 15",
 			},
 			{
 				name: "decryptPin",
-				call: func() error { return errOf(DecryptPin(shortKey, make([]byte, 8), "4012345678909", "ISO-0")) },
+				call: func() error {
+					return errOf(DecryptPin(m.jsBytes(shortKey), m.jsBytes(make([]byte, 8)), "4012345678909", "ISO-0"))
+				},
 				want: "currentKey must be 16 bytes, got 15",
 			},
 			{
 				name: "encryptData",
-				call: func() error { return errOf(m.EncryptData(shortKey, nil, m.jsBytes([]byte("data")), act)) },
+				call: func() error {
+					return errOf(m.EncryptData(m.jsBytes(shortKey), sobek.Null(), m.jsBytes([]byte("data")), act))
+				},
 				want: "currentKey must be 16 bytes, got 15",
 			},
 			{
 				name: "decryptData",
-				call: func() error { return errOf(m.DecryptData(shortKey, make([]byte, 8), nil, act)) },
+				call: func() error {
+					return errOf(m.DecryptData(m.jsBytes(shortKey), m.jsBytes(make([]byte, 8)), sobek.Null(), act))
+				},
 				want: "currentKey must be 16 bytes, got 15",
 			},
 			{
 				name: "generateMac",
-				call: func() error { return errOf(m.GenerateMac(shortKey, m.jsBytes([]byte("data")), act)) },
+				call: func() error { return errOf(m.GenerateMac(m.jsBytes(shortKey), m.jsBytes([]byte("data")), act)) },
 				want: "currentKey must be 16 bytes, got 15",
 			},
 			{
 				name: "derive/ik long",
-				call: func() error { return errOf(m.DeriveCurrentTransactionKey(append(key, 0), ksn)) },
+				call: func() error { return errOf(m.DeriveCurrentTransactionKey(m.jsBytes(append(key, 0)), m.jsBytes(ksn))) },
 				want: "ik must be 16 bytes, got 17",
 			},
 		})
@@ -567,12 +582,16 @@ func TestInvalidCiphertextLength(t *testing.T) {
 	}{
 		{
 			name: "ArrayBuffer/empty",
-			call: func() error { return errOf(m.DecryptData(make([]byte, 16), nil, nil, act)) },
+			call: func() error {
+				return errOf(m.DecryptData(m.jsBytes(make([]byte, 16)), m.jsBytes(nil), sobek.Null(), act))
+			},
 			want: "ciphertext length must be a non-zero multiple of 8 bytes, got 0",
 		},
 		{
 			name: "ArrayBuffer/ragged",
-			call: func() error { return errOf(m.DecryptData(make([]byte, 16), make([]byte, 15), nil, act)) },
+			call: func() error {
+				return errOf(m.DecryptData(m.jsBytes(make([]byte, 16)), m.jsBytes(make([]byte, 15)), sobek.Null(), act))
+			},
 			want: "ciphertext length must be a non-zero multiple of 8 bytes, got 15",
 		},
 		{
@@ -604,6 +623,7 @@ func TestInvalidCiphertextLength(t *testing.T) {
 }
 
 func TestInvalidPinBlockLength(t *testing.T) {
+	m, _ := newTestModule(t)
 	key := make([]byte, 16)
 	hexKey := "00000000000000000000000000000000"
 	b64Key := "AAAAAAAAAAAAAAAAAAAAAA=="
@@ -611,17 +631,19 @@ func TestInvalidPinBlockLength(t *testing.T) {
 	runLenCases(t, []lenCase{
 		{
 			name: "ArrayBuffer/empty",
-			call: func() error { return errOf(DecryptPin(key, nil, pan, formatVersion)) },
+			call: func() error { return errOf(DecryptPin(m.jsBytes(key), m.jsBytes(nil), pan, formatVersion)) },
 			want: "ciphertextPin must be 8 bytes, got 0",
 		},
 		{
 			name: "ArrayBuffer/short",
-			call: func() error { return errOf(DecryptPin(key, make([]byte, 3), pan, formatVersion)) },
+			call: func() error { return errOf(DecryptPin(m.jsBytes(key), m.jsBytes(make([]byte, 3)), pan, formatVersion)) },
 			want: "ciphertextPin must be 8 bytes, got 3",
 		},
 		{
 			name: "ArrayBuffer/long",
-			call: func() error { return errOf(DecryptPin(key, make([]byte, 16), pan, formatVersion)) },
+			call: func() error {
+				return errOf(DecryptPin(m.jsBytes(key), m.jsBytes(make([]byte, 16)), pan, formatVersion))
+			},
 			want: "ciphertextPin must be 8 bytes, got 16",
 		},
 		{
@@ -648,8 +670,8 @@ func TestEmptyPlainText(t *testing.T) {
 		name string
 		call func() error
 	}{
-		{name: "ArrayBuffer/encryptData", call: func() error { return errOf(m.EncryptData(key, nil, m.jsBytes(nil), act)) }},
-		{name: "ArrayBuffer/generateMac", call: func() error { return errOf(m.GenerateMac(key, m.jsBytes(nil), act)) }},
+		{name: "ArrayBuffer/encryptData", call: func() error { return errOf(m.EncryptData(m.jsBytes(key), sobek.Null(), m.jsBytes(nil), act)) }},
+		{name: "ArrayBuffer/generateMac", call: func() error { return errOf(m.GenerateMac(m.jsBytes(key), m.jsBytes(nil), act)) }},
 		{name: "Hex/encryptData", call: func() error { return errOf(EncryptDataAsHex(hexKey, "", "", act)) }},
 		{name: "Hex/generateMac", call: func() error { return errOf(GenerateMacAsHex(hexKey, "", act)) }},
 		{name: "Base64/encryptData", call: func() error { return errOf(EncryptDataAsBase64(b64Key, "", "", act)) }},
@@ -670,7 +692,7 @@ func TestInvalidTransactionCounter(t *testing.T) {
 	derive := func(ksnHex string) map[string]error {
 		ksn := pkg.HexDecode(ksnHex)
 		return map[string]error{
-			"ArrayBuffer": errOf(m.DeriveCurrentTransactionKey(ik, ksn)),
+			"ArrayBuffer": errOf(m.DeriveCurrentTransactionKey(m.jsBytes(ik), m.jsBytes(ksn))),
 			"Hex":         errOf(DeriveCurrentTransactionKeyAsHex(hex.EncodeToString(ik), ksnHex)),
 			"Base64":      errOf(DeriveCurrentTransactionKeyAsBase64(base64.StdEncoding.EncodeToString(ik), base64.StdEncoding.EncodeToString(ksn))),
 		}
@@ -712,6 +734,6 @@ func TestInvalidTransactionCounter(t *testing.T) {
 	// The initial key derivation clears the counter, so counter 0 stays valid there.
 	t.Run("derivationOfInitialKey keeps counter 0", func(t *testing.T) {
 		ksn := pkg.HexDecode("FFFF9876543210E00000")
-		require.NoError(t, errOf(m.DerivationOfInitialKey(moovTestBdk, ksn)))
+		require.NoError(t, errOf(m.DerivationOfInitialKey(m.jsBytes(moovTestBdk), m.jsBytes(ksn))))
 	})
 }

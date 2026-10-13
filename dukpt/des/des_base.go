@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/bits"
 
+	"github.com/arukiidou/xk6-dukpt/internal/jsbytes"
 	"github.com/grafana/sobek"
 	"github.com/moov-io/dukpt/pkg"
 	"github.com/moov-io/dukpt/pkg/des"
@@ -36,7 +37,16 @@ func (m *module) newArrayBuffer(b []byte) *sobek.ArrayBuffer {
 // Return Params:
 //   - result[ArrayBuffer] - 16 bytes transaction key
 //   - err
-func (m *module) DeriveCurrentTransactionKey(ik, ksn []byte) (*sobek.ArrayBuffer, error) {
+func (m *module) DeriveCurrentTransactionKey(ikArg, ksnArg sobek.Value) (*sobek.ArrayBuffer, error) {
+	ik, err := jsbytes.Required("ik", ikArg)
+	if err != nil {
+		return nil, err
+	}
+	ksn, err := jsbytes.Required("ksn", ksnArg)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := validateKey("ik", ik); err != nil {
 		return nil, err
 	}
@@ -63,7 +73,16 @@ func (m *module) DeriveCurrentTransactionKey(ik, ksn []byte) (*sobek.ArrayBuffer
 // Return Params:
 //   - result[ArrayBuffer] - 16 bytes initial key
 //   - err
-func (m *module) DerivationOfInitialKey(bdk, ksn []byte) (*sobek.ArrayBuffer, error) {
+func (m *module) DerivationOfInitialKey(bdkArg, ksnArg sobek.Value) (*sobek.ArrayBuffer, error) {
+	bdk, err := jsbytes.Required("bdk", bdkArg)
+	if err != nil {
+		return nil, err
+	}
+	ksn, err := jsbytes.Required("ksn", ksnArg)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := validateKey("bdk", bdk); err != nil {
 		return nil, err
 	}
@@ -94,7 +113,12 @@ func (m *module) DerivationOfInitialKey(bdk, ksn []byte) (*sobek.ArrayBuffer, er
 // Return Params:
 //   - result[ArrayBuffer] - cipher text
 //   - err
-func (m *module) EncryptPin(currentKey []byte, cleartextPin, pan, format string) (*sobek.ArrayBuffer, error) {
+func (m *module) EncryptPin(currentKeyArg sobek.Value, cleartextPin, pan, format string) (*sobek.ArrayBuffer, error) {
+	currentKey, err := jsbytes.Required("currentKey", currentKeyArg)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := validateKey("currentKey", currentKey); err != nil {
 		return nil, err
 	}
@@ -122,7 +146,16 @@ func (m *module) EncryptPin(currentKey []byte, cleartextPin, pan, format string)
 // Return Params:
 //   - result - pin string (plain text)
 //   - err
-func DecryptPin(currentKey, ciphertextPin []byte, pan, format string) (string, error) {
+func DecryptPin(currentKeyArg, ciphertextPinArg sobek.Value, pan, format string) (string, error) {
+	currentKey, err := jsbytes.Required("currentKey", currentKeyArg)
+	if err != nil {
+		return "", err
+	}
+	ciphertextPin, err := jsbytes.Required("ciphertextPin", ciphertextPinArg)
+	if err != nil {
+		return "", err
+	}
+
 	if err := validateKey("currentKey", currentKey); err != nil {
 		return "", err
 	}
@@ -137,7 +170,7 @@ func DecryptPin(currentKey, ciphertextPin []byte, pan, format string) (string, e
 //
 // Params:
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
-//   - iv[ArrayBuffer] is the 8 byte initial vector, null or empty for the default zero vector
+//   - iv[ArrayBuffer] is the 8 byte initial vector, null, undefined or empty for the default zero vector
 //   - plainText[ArrayBuffer] is transaction request data, must not be empty.
 //   - action is "request" or "response", anything else is an error.
 //     Stricter than upstream (moov-io).
@@ -145,15 +178,24 @@ func DecryptPin(currentKey, ciphertextPin []byte, pan, format string) (string, e
 // Return Params:
 //   - result[ArrayBuffer] - encrypted data, zero padded to a multiple of 8 bytes
 //   - err
-func (m *module) EncryptData(currentKey, iv []byte, plainText sobek.Value, action string) (*sobek.ArrayBuffer, error) {
-	if err := validateAction(action); err != nil {
-		return nil, err
-	}
-	iv, err := normalizeIV(iv)
+func (m *module) EncryptData(currentKeyArg, ivArg, plainTextArg sobek.Value, action string) (*sobek.ArrayBuffer, error) {
+	currentKey, err := jsbytes.Required("currentKey", currentKeyArg)
 	if err != nil {
 		return nil, err
 	}
-	rawPlainText, err := bytesArg("plainText", plainText)
+	rawIv, err := jsbytes.Optional("iv", ivArg)
+	if err != nil {
+		return nil, err
+	}
+	rawPlainText, err := jsbytes.Required("plainText", plainTextArg)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := validateAction(action); err != nil {
+		return nil, err
+	}
+	iv, err := normalizeIV(rawIv)
 	if err != nil {
 		return nil, err
 	}
@@ -179,18 +221,31 @@ func (m *module) EncryptData(currentKey, iv []byte, plainText sobek.Value, actio
 //   - currentKey[ArrayBuffer] is 16 bytes transaction key
 //   - ciphertext[ArrayBuffer] is encrypted text, a non-empty multiple of 8 bytes
 //     Stricter than upstream (moov-io), which zero pads other lengths.
-//   - iv[ArrayBuffer] is the 8 byte initial vector, null or empty for the default zero vector
+//   - iv[ArrayBuffer] is the 8 byte initial vector, null, undefined or empty for the default zero vector
 //   - action is "request" or "response", anything else is an error.
 //     Stricter than upstream (moov-io).
 //
 // Return Params:
 //   - result[ArrayBuffer] - transaction request data, zero padded to a multiple of 8 bytes
 //   - err
-func (m *module) DecryptData(currentKey, ciphertext, iv []byte, action string) (*sobek.ArrayBuffer, error) {
+func (m *module) DecryptData(currentKeyArg, ciphertextArg, ivArg sobek.Value, action string) (*sobek.ArrayBuffer, error) {
+	currentKey, err := jsbytes.Required("currentKey", currentKeyArg)
+	if err != nil {
+		return nil, err
+	}
+	ciphertext, err := jsbytes.Required("ciphertext", ciphertextArg)
+	if err != nil {
+		return nil, err
+	}
+	rawIv, err := jsbytes.Optional("iv", ivArg)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := validateAction(action); err != nil {
 		return nil, err
 	}
-	iv, err := normalizeIV(iv)
+	iv, err := normalizeIV(rawIv)
 	if err != nil {
 		return nil, err
 	}
@@ -223,12 +278,17 @@ func (m *module) DecryptData(currentKey, ciphertext, iv []byte, action string) (
 // Return Params:
 //   - result[ArrayBuffer] - 8 bytes mac, use the first 4 bytes as the ANSI X9.24-1 mac
 //   - err
-func (m *module) GenerateMac(currentKey []byte, plainText sobek.Value, action string) (*sobek.ArrayBuffer, error) {
-	if err := validateAction(action); err != nil {
+func (m *module) GenerateMac(currentKeyArg, plainTextArg sobek.Value, action string) (*sobek.ArrayBuffer, error) {
+	currentKey, err := jsbytes.Required("currentKey", currentKeyArg)
+	if err != nil {
 		return nil, err
 	}
-	rawPlainText, err := bytesArg("plainText", plainText)
+	rawPlainText, err := jsbytes.Required("plainText", plainTextArg)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := validateAction(action); err != nil {
 		return nil, err
 	}
 	if err := validateKey("currentKey", currentKey); err != nil {
@@ -314,20 +374,6 @@ func validateCiphertext(ct []byte) error {
 // lengths too, but without naming the argument or the actual length.
 func validatePinBlock(ct []byte) error {
 	return requireLen("ciphertextPin", ct, desBlockLen)
-}
-
-// bytesArg takes an ArrayBuffer or Uint8Array argument. sobek would turn
-// any other value, a string included, into bytes without complaint.
-func bytesArg(name string, v sobek.Value) ([]byte, error) {
-	if v != nil {
-		switch b := v.Export().(type) {
-		case sobek.ArrayBuffer:
-			return b.Bytes(), nil
-		case []byte:
-			return b, nil
-		}
-	}
-	return nil, fmt.Errorf("%s must be an ArrayBuffer or Uint8Array", name)
 }
 
 // validatePlainText rejects empty data. moov-io encrypts it into an empty
