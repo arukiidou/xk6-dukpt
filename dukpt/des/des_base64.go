@@ -112,7 +112,7 @@ func EncryptPinAsBase64(currentKey, pin, pan, format string) (string, error) {
 // [des.DecryptPin] port from moov-io
 //
 // currentKey base64 string - 16 bytes transaction key.
-// ciphertext base64 string - encrypted pin block.
+// ciphertext base64 string - 8 bytes encrypted pin block.
 // pan is not formatted pan string.
 // format is pinblock format
 // ("ISO-0", "ISO-1", "ISO-2", "ISO-3", "ISO-4", "ANSI", "ECI1", "ECI2", "ECI3", "ECI4", "VISA1", "VISA2", "VISA3", "VISA4").
@@ -135,6 +135,9 @@ func DecryptPinAsBase64(currentKey, ciphertext, pan, format string) (string, err
 	}
 
 	if err := validateKey("currentKey", rawCurrentKey); err != nil {
+		return "", err
+	}
+	if err := validatePinBlock(rawCiphertext); err != nil {
 		return "", err
 	}
 
