@@ -231,7 +231,9 @@ encryptDataAsHex(ck, "", bytes.toHex(), "request");
 An empty `plainText` is now an error in all variants (`plainText must not be empty`), stricter than upstream:
 moov-io encrypts it into an empty ciphertext that `decryptData` rejects, and MACs it as a zero block.
 
-### Breaking changes in v0.13.0: transaction counter validation
+## Breaking changes in v0.13.0: 
+
+### transaction counter validation
 
 `deriveCurrentTransactionKey` now returns an error for a `ksn` whose 21 bit transaction counter no ANSI X9.24-1 originator produces.
 This applies to all variants (ArrayBuffer, Base64, Hex), and is stricter than upstream.
@@ -247,7 +249,7 @@ Errors read `ksn transaction counter must not be 0` or
 `derivationOfInitialKey` is unchanged: it clears the counter, so a KSN with counter 0 still derives the initial key.
 `getDesTcFromKsn` and `generateNextDesKsn` are unchanged as well; `generateNextDesKsn` from counter 0 returns counter 1.
 
-### Breaking changes in v0.13.0: byte arguments take only ArrayBuffer or Uint8Array
+### byte arguments take only ArrayBuffer or Uint8Array
 
 Every byte argument of the raw APIs now rejects anything but an `ArrayBuffer` or `Uint8Array`,
 as `plainText` already did since v0.12.0 and as the type definitions always declared.
