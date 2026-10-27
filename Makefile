@@ -64,7 +64,7 @@ it:
 lint: 
 	@(\
 		golangci-lint run ./...;\
-		go tool xk6 lint;\
+		go tool xk6 lint --preset strict;\
 	)
 
 # Generate the Makefile
