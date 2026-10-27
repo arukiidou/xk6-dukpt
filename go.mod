@@ -1,6 +1,6 @@
 module github.com/arukiidou/xk6-dukpt
 
-go 1.26.3
+go 1.26.10
 
 require (
 	github.com/grafana/sobek v0.0.0-20260908083152-4698bc773ae7
