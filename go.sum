@@ -105,8 +105,8 @@ github.com/google/pprof v0.0.0-20260115054156-294ebfa9ad83 h1:z2ogiKUYzX5Is6zr/v
 github.com/google/pprof v0.0.0-20260115054156-294ebfa9ad83/go.mod h1:MxpfABSjhmINe3F1It9d+8exIHFvUqtLIRCdOGNXqiI=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-github.com/goreleaser/fileglob v1.4.0 h1:Y7zcUnzQjT1gbntacGAkIIfLv+OwojxTXBFxjSFoBBs=
-github.com/goreleaser/fileglob v1.4.0/go.mod h1:1pbHx7hhmJIxNZvm6fi6WVrnP0tndq6p3ayWdLn1Yf8=
+github.com/goreleaser/fileglob v1.4.1 h1:4/SXlDDzfKCorA28/S3aXd/6D8VHDZjGXGIttVSjxhU=
+github.com/goreleaser/fileglob v1.4.1/go.mod h1:1pbHx7hhmJIxNZvm6fi6WVrnP0tndq6p3ayWdLn1Yf8=
 github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/grafana/k6-cloud-openapi-client-go v0.0.3-0.20260716125012-97c96146fa7c h1:a6t4uyt2GDUWUa3zML524CuKtuqPvGaYE3JfBO5Xww0=
@@ -246,8 +246,8 @@ github.com/xanzy/ssh-agent v0.3.3 h1:+/15pJfg/RsTxqYcX6fHqOXZwwMP+2VyYWJeWM2qQFM
 github.com/xanzy/ssh-agent v0.3.3/go.mod h1:6dzNDKs0J9rVPHPhaGCukekBHKqfl+L3KghI1Bc68Uw=
 go.k6.io/k6/v2 v2.3.0 h1:cpXC0zfJdMuCOjAcZeCX2nTVz2ey75QzJ0q/JWZKnlQ=
 go.k6.io/k6/v2 v2.3.0/go.mod h1:nRz/nzFu1Gr3Fkay9vB5Z14exNcaIDdDYWuGFgGzoAk=
-go.k6.io/xk6 v1.4.14 h1:SDjR9UkW7YlRdEBnd5rBLDAsWYPFzOfeuEigT7fzEqY=
-go.k6.io/xk6 v1.4.14/go.mod h1:GoU9DwXOFgXsIT37KM9NdiuYUB41GGccrtl/uPbBXO4=
+go.k6.io/xk6 v1.4.15 h1:xOjbPw9WElIG8N4+HJkPJkS9HbTC81e9iKbbLfLX2Ck=
+go.k6.io/xk6 v1.4.15/go.mod h1:3C1sWpwkl/sx9F/eIK4rlfhl51X0KNk66emZHv+b1IA=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
 go.opentelemetry.io/otel v1.46.0 h1:FHt5/CDyVxi/8IM1CH7VE/rRgq3kLHa2mSTVMO8AWyc=

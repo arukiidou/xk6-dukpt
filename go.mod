@@ -38,7 +38,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/pprof v0.0.0-20260115054156-294ebfa9ad83 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/goreleaser/fileglob v1.4.0 // indirect
+	github.com/goreleaser/fileglob v1.4.1 // indirect
 	github.com/grafana/k6foundry v0.5.3 // indirect
 	github.com/grafana/sobek-webapi-encoding v0.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
@@ -68,7 +68,7 @@ require (
 	github.com/szkiba/docsme v0.2.0 // indirect
 	github.com/szkiba/efa v0.1.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	go.k6.io/xk6 v1.4.14 // indirect
+	go.k6.io/xk6 v1.4.15 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.46.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.46.0 // indirect
