@@ -19,10 +19,11 @@ __help__:
 	@echo '  readme   Update README.md'
 	@echo '  security Run security checks'
 	@echo '  test     Run the tests'
-
+	@echo '  upgrade  Upgrade xk6'
+	
 # Run relevant tasks
 .PHONY: all
-all: clean format lint security test build it doc readme makefile
+all: clean format lint security test build it doc readme makefile upgrade
 
 # Build custom k6 with extension
 .PHONY: build
@@ -96,3 +97,11 @@ test:
 		go test -count 1 -race -coverprofile=coverage.txt -timeout 60s ./...;\
 	)
 
+# xk6 upgrade
+.PHONY: upgrade
+upgrade: 
+	@(\
+		go tool xk6 sync;\
+		go get -tool go.k6.io/xk6@latest;\
+		go mod tidy;\
+	)
